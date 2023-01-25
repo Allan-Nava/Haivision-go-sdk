@@ -6,18 +6,28 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
-func BuildHaivision(url string, debug bool) (*Haivision, error) {
-	ovenClient := &Haivision{
+func BuildHaivision(url string, debug bool, header *HeaderConfigurator) (*Haivision, error) {
+	haivisionClient := &Haivision{
 		Url:        url,
 		RestClient: resty.New(),
 	}
+	// You can override all below settings and options at request level if you want to
+	//--------------------------------------------------------------------------------
+	// Host URL for all request. So you can use relative URL in the request
+	haivisionClient.restClient.SetHostURL(url)
+	if header != nil {
+		// Headers for all request
+		for h, v := range header.GetHeaders() {
+			haivisionClient.restClient.SetHeader(h, v)
+		}
+	}
 	//
 	if debug {
-		ovenClient.RestClient.SetDebug(true)
-		ovenClient.Debug = true
-		log.Println("Debug mode is enabled for the Haproxy client ")
+		haivisionClient.RestClient.SetDebug(true)
+		haivisionClient.Debug = true
+		log.Println("Debug mode is enabled for the haivision client ")
 	}
-	return ovenClient, nil
+	return haivisionClient, nil
 }
 
 func (o *Haivision) DebugPrint(data interface{}) {
