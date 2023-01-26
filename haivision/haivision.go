@@ -19,7 +19,7 @@ type IHaivisionClient interface {
 }
 
 func (o *Haivision) HealthCheck() error {
-	resp, err := o.RestClient.R().
+	resp, err := o.restClient.R().
 		SetHeader("Accept", "application/json").
 		Get(o.Url)
 	//
