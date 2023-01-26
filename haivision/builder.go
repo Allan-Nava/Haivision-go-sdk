@@ -9,7 +9,7 @@ import (
 func BuildHaivision(url string, debug bool, header *HeaderConfigurator) (*Haivision, error) {
 	haivisionClient := &Haivision{
 		Url:        url,
-		RestClient: resty.New(),
+		restClient: resty.New(),
 	}
 	// You can override all below settings and options at request level if you want to
 	//--------------------------------------------------------------------------------
@@ -23,15 +23,15 @@ func BuildHaivision(url string, debug bool, header *HeaderConfigurator) (*Haivis
 	}
 	//
 	if debug {
-		haivisionClient.RestClient.SetDebug(true)
-		haivisionClient.Debug = true
+		haivisionClient.restClient.SetDebug(true)
+		haivisionClient.debug = true
 		log.Println("Debug mode is enabled for the haivision client ")
 	}
 	return haivisionClient, nil
 }
 
-func (o *Haivision) DebugPrint(data interface{}) {
-	if o.Debug {
+func (o *Haivision) debugPrint(data interface{}) {
+	if o.debug {
 		log.Println(data)
 	}
 }

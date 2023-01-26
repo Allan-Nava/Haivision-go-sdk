@@ -10,8 +10,8 @@ import (
 
 type Haivision struct {
 	Url        string
-	RestClient *resty.Client
-	Debug      bool
+	restClient *resty.Client
+	debug      bool
 }
 
 type IHaivisionClient interface {
@@ -28,8 +28,51 @@ func (o *Haivision) HealthCheck() error {
 	}
 	//
 	if !strings.Contains(resp.Status(), "200") {
-		o.DebugPrint(fmt.Sprintf("resp -> %v", resp))
+		o.debugPrint(fmt.Sprintf("resp -> %v", resp))
 		return errors.New("Could not connect haproxy")
 	}
 	return nil
 }
+
+
+// 
+func (o *Haivision) IsDebug() bool {
+	return o.debug
+}
+
+// Resty Methods
+
+func (o *Haivision) restyPost(url string, body interface{}) (*resty.Response, error) {
+	resp, err := o.restClient.R().
+		SetHeader("Accept", "application/json").
+		SetBody(body).
+		Post(url)
+
+	if err != nil {
+		return nil, err
+	}
+	if !strings.Contains(resp.Status(), "200") {
+		err = fmt.Errorf("resp -> %v | status_code: %s", resp, resp.Status())
+		o.debugPrint(err)
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (o *Haivision) restyGet(url string, queryParams map[string]string) (*resty.Response, error) {
+	resp, err := o.restClient.R().
+		SetQueryParams(queryParams).
+		Get(url)
+	//
+	if err != nil {
+		return nil, err
+	}
+	if !strings.Contains(resp.Status(), "200") {
+		resp.Body()
+		err = fmt.Errorf("resp -> %v | status_code: %s", resp, resp.Status())
+		o.debugPrint(err)
+		return nil, err
+	}
+	return resp, nil
+}
+
