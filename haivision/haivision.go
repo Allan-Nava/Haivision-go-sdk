@@ -18,7 +18,7 @@ type IHaivisionClient interface {
 	HealthCheck() error
 	IsDebug() bool
 	// auth stuff
-	
+	InitSession(username string, password string) error
 	// Streaming
 }
 
@@ -39,7 +39,7 @@ func (o *Haivision) HealthCheck() error {
 }
 //
 
-func (o *OvenMedia) IsDebug() bool {
+func (o *Haivision) IsDebug() bool {
 	return o.debug
 }
 
