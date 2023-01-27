@@ -18,9 +18,9 @@ type IHaivisionClient interface {
 	HealthCheck() error
 	IsDebug() bool
 	// auth stuff
-	InitSession(username string, password string) error
+	InitSession(username string, password string) (*ResponseInitSession, error)
 	// Streaming
-	GetRoutes(deviceId string) error 
+	GetRoutes(deviceId string) error
 }
 
 func (o *Haivision) HealthCheck() error {

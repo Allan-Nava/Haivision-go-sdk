@@ -1,31 +1,51 @@
 package haivision
 
+import (
+	"encoding/json"
+
+	"gopkg.in/validator.v2"
+)
+
 /*
 Requests
 POST /api/session
 
-{
- "username" :  "[user name]",
- "password" :  "[password]"
-}
+	{
+	 "username" :  "[user name]",
+	 "password" :  "[password]"
+	}
+
 Response
-{
-    "response": {
-        "type": "Session",
-        "message": "Session successfully started for haiadmin",
-        "sessionID": "[Session ID]",
-        "lastLoginDate": 1536777877871,
-        "numLoginFailures": 0
-    }
-}
+
+	{
+	    "response": {
+	        "type": "Session",
+	        "message": "Session successfully started for haiadmin",
+	        "sessionID": "[Session ID]",
+	        "lastLoginDate": 1536777877871,
+	        "numLoginFailures": 0
+	    }
+	}
 */
-
-// POST 
-func (o *Haivision) InitSession(username string, password string) error {
-	return nil
+func (o *Haivision) InitSession(username string, password string) (*ResponseInitSession, error) {
+	var requestBody RequestInitSession
+	//
+	if errs := validator.Validate(requestBody); errs != nil {
+		// values not valid, deal with errors here
+		return nil, errs
+	}
+	resp, err := o.restyPost(SESSION, requestBody)
+	if err != nil {
+		return nil, err
+	}
+	var obj ResponseInitSession
+	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
+		return nil, err
+	}
+	return &obj, nil
 }
 
-// GET 
+// GET
 func (o *Haivision) GetDeviceInfo() error {
-    return nil
+	return nil
 }
