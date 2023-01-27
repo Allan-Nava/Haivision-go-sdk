@@ -1,5 +1,7 @@
 package haivision
 
+import "fmt"
+
 const (
     // AUTH 
     SESSION = "/api/session" 
