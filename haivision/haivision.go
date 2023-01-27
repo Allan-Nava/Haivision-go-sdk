@@ -19,6 +19,7 @@ type IHaivisionClient interface {
 	IsDebug() bool
 	// auth stuff
 	InitSession(username string, password string) (*BaseResponseInitSession, error)
+	GetSessionInfo() (*ResponseSessionInfo, error)
 	GetDeviceInfo() (*BaseResponseDeviceInfo, error)
 	// Streaming
 	GetRoutes(deviceId string) error
