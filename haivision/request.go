@@ -1,10 +1,5 @@
 package haivision
 
-type RequestInitSession struct {
-	Username string `json:"username" required:"true" validate:"nonnil,min=1"`
-	Password string `json:"password" required:"true" validate:"nonnil,min=1"`
-}
-
 type RequestSourceModelUDPandRTP struct {
 	Name             string `json:"name" validate:"nonnil,min=1" required:"true"`
 	ID               string `json:"id" required:"true" validate:"nonnil,min=1"`

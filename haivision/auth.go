@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 
 	"gopkg.in/validator.v2"
+
+	"github.com/Allan-Nava/Haivision-go-sdk/haivision/session"
 )
 
 /*
@@ -28,7 +30,7 @@ Response
 	}
 */
 func (o *Haivision) InitSession(username string, password string) (*BaseResponseInitSession, error) {
-	var requestBody RequestInitSession
+	var requestBody session.RequestInitSession
 	//
 	if errs := validator.Validate(requestBody); errs != nil {
 		// values not valid, deal with errors here
