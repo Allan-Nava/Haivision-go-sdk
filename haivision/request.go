@@ -18,7 +18,9 @@ type RequestSourceModelUDPandRTP struct {
     Fec string `json:fec required:"true" validate:"nonnil,min=1"`
 }
 
+// https://doc.haivision.com/HMG3.7.5/rest-api-integrator-s-reference/rest-api-reference/object-model-reference/source-object-model?activetab=SRT%7EUDPandRTP
 
+//
 type RequestSourceModelSRT struct {
     Name string `json:name required:"true" validate:"nonnil,min=1"`
     ID string `json:id required:"true" validate:"nonnil,min=1"`

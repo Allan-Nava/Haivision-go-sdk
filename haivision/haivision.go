@@ -20,6 +20,7 @@ type IHaivisionClient interface {
 	// auth stuff
 	InitSession(username string, password string) error
 	// Streaming
+	GetRoutes(deviceId string) error 
 }
 
 func (o *Haivision) HealthCheck() error {

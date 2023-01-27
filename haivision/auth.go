@@ -20,7 +20,12 @@ Response
 }
 */
 
-// POST http://1.2.3.4:8081/v1/vhosts/default/apps/app:startPush
+// POST 
 func (o *Haivision) InitSession(username string, password string) error {
 	return nil
+}
+
+// GET 
+func (o *Haivision) GetDeviceInfo() error {
+    return nil
 }
