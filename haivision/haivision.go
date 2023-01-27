@@ -16,6 +16,10 @@ type Haivision struct {
 
 type IHaivisionClient interface {
 	HealthCheck() error
+	IsDebug() bool
+	// auth stuff
+	
+	// Streaming
 }
 
 func (o *Haivision) HealthCheck() error {
@@ -32,6 +36,11 @@ func (o *Haivision) HealthCheck() error {
 		return errors.New("Could not connect haproxy")
 	}
 	return nil
+}
+//
+
+func (o *OvenMedia) IsDebug() bool {
+	return o.debug
 }
 
 
