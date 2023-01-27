@@ -2,11 +2,14 @@ package haivision
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/go-resty/resty/v2"
 )
 
-func BuildHaivision(url string, debug bool, header *HeaderConfigurator) (*Haivision, error) {
+// Builder is used to build a new haivision client
+func BuildHaivision(url string, debug bool, username string, password string, header *HeaderConfigurator) (*Haivision, error) {
+	// init haivision
 	haivisionClient := &Haivision{
 		Url:        url,
 		restClient: resty.New(),
@@ -14,7 +17,17 @@ func BuildHaivision(url string, debug bool, header *HeaderConfigurator) (*Haivis
 	// You can override all below settings and options at request level if you want to
 	//--------------------------------------------------------------------------------
 	// Host URL for all request. So you can use relative URL in the request
-	haivisionClient.restClient.SetHostURL(url)
+	haivisionClient.restClient.SetBaseURL(url)
+	sessionId, err := haivisionClient.InitSession(username, password)
+	if err != nil {
+		return nil, err
+	}
+	// Set Cookie for all request
+	haivisionClient.restClient.SetCookie(&http.Cookie{
+		Name:  "sessionID",
+		Value: sessionId.SessionID,
+	})
+	//
 	if header != nil {
 		// Headers for all request
 		for h, v := range header.GetHeaders() {
