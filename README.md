@@ -24,8 +24,6 @@ import "github.com/Allan-Nava/Haivision-go-sdk"
 
 The SDK also provide more functionality such as stop stream, getting stream status, play stream, and more, you can see the full API documentation in the API Reference section.
 
-### API Reference
-The Haivision Go SDK provides a wide range of functions and methods for interacting with Haivision's platform. The full API documentation can be found at https://github.com/Allan-Nava/Haivision-go-sdk/blob/master/docs/API.md
 
 ### Support
 If you have any issues or need assistance using the Haivision Go SDK, please contact the developer at allan.nava@email.com or visit the project's issue tracker at https://github.com/Allan-Nava/Haivision-go-sdk/issues
@@ -35,9 +33,6 @@ We welcome contributions to the Haivision Go SDK. If you would like to contribut
 
 ### License
 The Haivision Go SDK is released under the MIT License and can be used for both personal and commercial projects.
-
-### Versioning
-The Haivision Go SDK follows Semantic Versioning and the current version of the SDK is 1.0.0
 
 
 

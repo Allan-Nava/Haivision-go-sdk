@@ -27,7 +27,7 @@ Response
 	    }
 	}
 */
-func (o *Haivision) InitSession(username string, password string) (*ResponseInitSession, error) {
+func (o *Haivision) InitSession(username string, password string) (*BaseResponseInitSession, error) {
 	var requestBody RequestInitSession
 	//
 	if errs := validator.Validate(requestBody); errs != nil {
@@ -38,7 +38,7 @@ func (o *Haivision) InitSession(username string, password string) (*ResponseInit
 	if err != nil {
 		return nil, err
 	}
-	var obj ResponseInitSession
+	var obj BaseResponseInitSession
 	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
 		return nil, err
 	}

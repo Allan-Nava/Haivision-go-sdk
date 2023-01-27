@@ -18,14 +18,14 @@ func BuildHaivision(url string, debug bool, username string, password string, he
 	//--------------------------------------------------------------------------------
 	// Host URL for all request. So you can use relative URL in the request
 	haivisionClient.restClient.SetBaseURL(url)
-	sessionId, err := haivisionClient.InitSession(username, password)
+	respSessionId, err := haivisionClient.InitSession(username, password)
 	if err != nil {
 		return nil, err
 	}
 	// Set Cookie for all request
 	haivisionClient.restClient.SetCookie(&http.Cookie{
 		Name:  "sessionID",
-		Value: sessionId.SessionID,
+		Value: respSessionId.Response.SessionID,
 	})
 	//
 	if header != nil {

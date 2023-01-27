@@ -18,9 +18,11 @@ type IHaivisionClient interface {
 	HealthCheck() error
 	IsDebug() bool
 	// auth stuff
-	InitSession(username string, password string) (*ResponseInitSession, error)
+	InitSession(username string, password string) (*BaseResponseInitSession, error)
 	// Streaming
 	GetRoutes(deviceId string) error
+	// CreateRoute() error
+	//
 }
 
 func (o *Haivision) HealthCheck() error {
@@ -34,7 +36,7 @@ func (o *Haivision) HealthCheck() error {
 	//
 	if !strings.Contains(resp.Status(), "200") {
 		o.debugPrint(fmt.Sprintf("resp -> %v", resp))
-		return errors.New("Could not connect haproxy")
+		return errors.New("could not connect haproxy")
 	}
 	return nil
 }
@@ -64,6 +66,7 @@ func (o *Haivision) restyPost(url string, body interface{}) (*resty.Response, er
 	return resp, nil
 }
 
+// get request
 func (o *Haivision) restyGet(url string, queryParams map[string]string) (*resty.Response, error) {
 	resp, err := o.restClient.R().
 		SetQueryParams(queryParams).

@@ -1,14 +1,19 @@
 package haivision
 
-/*{
-    "response": {
-        "type": "Session",
-        "message": "Session successfully started for haiadmin",
-        "sessionID": "[Session ID]",
-        "lastLoginDate": 1536777877871,
-        "numLoginFailures": 0
-    }
-}*/
+/*
+	{
+	    "response": {
+	        "type": "Session",
+	        "message": "Session successfully started for haiadmin",
+	        "sessionID": "[Session ID]",
+	        "lastLoginDate": 1536777877871,
+	        "numLoginFailures": 0
+	    }
+	}
+*/
+type BaseResponseInitSession struct {
+	Response ResponseInitSession `json:"response" validate:"nonzero"`
+}
 
 type ResponseInitSession struct {
 	Type             string `json:"type" validate:"nonzero"`
