@@ -24,7 +24,7 @@ type IHaivisionClient interface {
 	GetSessionInfo() (*session.ResponseSessionInfo, error)
 	GetDeviceInfo() (*device.BaseResponseDeviceInfo, error)
 	// Streaming
-	GetRoutes(deviceId string) error
+	//GetRoutes(deviceId string) (*RouteSrt, error)
 	// CreateRoute() error
 	//
 }
