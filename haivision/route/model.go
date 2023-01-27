@@ -1,9 +1,10 @@
 package route
 
 import (
+	"github.com/Allan-Nava/Haivision-go-sdk/haivision/rtmp"
+	"github.com/Allan-Nava/Haivision-go-sdk/haivision/rtsp"
 	"github.com/Allan-Nava/Haivision-go-sdk/haivision/srt"
 	udprtp "github.com/Allan-Nava/Haivision-go-sdk/haivision/udp_rtp"
-	"github.com/Allan-Nava/Haivision-go-sdk/haivision/rtmp"
 )
 
 /*
@@ -40,10 +41,14 @@ type RequestCreateRoute[TS RequestSource, TD RequestDestination] struct {
 	}
 }
 
+// request source
 type RequestSource interface {
-	srt.RequestSourceModelSRT | udprtp.RequestSourceModelUdpRtp | rtmp.RequestSourceModelRTMP
+	srt.RequestSourceModelSRT | udprtp.RequestSourceModelUdpRtp | rtmp.RequestSourceModelRTMP | rtsp.RequestSourceModelRTSP
 }
 
+// request destination
 type RequestDestination interface {
-	srt.RequestDestinationModelSrt | udprtp.RequestDestinationModelUdpRtp
+	srt.RequestDestinationModelSrt | udprtp.RequestDestinationModelUdpRtp | rtmp.RequestDestinationModelRtmp | rtsp.RequestDestinationModelRtsp
 }
+
+//

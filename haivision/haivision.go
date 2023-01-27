@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Allan-Nava/Haivision-go-sdk/haivision/route"
 	"github.com/Allan-Nava/Haivision-go-sdk/haivision/device"
-	"github.com/Allan-Nava/Haivision-go-sdk/haivision/srt"
+	"github.com/Allan-Nava/Haivision-go-sdk/haivision/route"
+	"github.com/Allan-Nava/Haivision-go-sdk/haivision/rtmp"
 	"github.com/Allan-Nava/Haivision-go-sdk/haivision/session"
+	"github.com/Allan-Nava/Haivision-go-sdk/haivision/srt"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -28,6 +29,7 @@ type IHaivisionClient interface {
 	// Streaming
 	//GetRoutes(deviceId string) (route.ResponseRoutes[TS, TD], error)
 	GetRoutesSRT(deviceId string) (route.ResponseRoutes[srt.RequestSourceModelSRT, srt.RequestDestinationModelSrt], error)
+	GetRoutesRTMP(deviceId string) (route.ResponseRoutes[rtmp.RequestSourceModelRTMP, rtmp.RequestDestinationModelRtmp], error)
 	// CreateRoute() error
 	//
 }
