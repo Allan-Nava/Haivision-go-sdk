@@ -1,16 +1,18 @@
 package haivision
 
 import (
-	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/go-resty/resty/v2"
 
 	"github.com/Allan-Nava/Haivision-go-sdk/haivision/device"
 	"github.com/Allan-Nava/Haivision-go-sdk/haivision/route"
 	"github.com/Allan-Nava/Haivision-go-sdk/haivision/rtmp"
+	"github.com/Allan-Nava/Haivision-go-sdk/haivision/rtsp"
 	"github.com/Allan-Nava/Haivision-go-sdk/haivision/session"
 	"github.com/Allan-Nava/Haivision-go-sdk/haivision/srt"
-	"github.com/go-resty/resty/v2"
+	udprtp "github.com/Allan-Nava/Haivision-go-sdk/haivision/udp_rtp"
 )
 
 type Haivision struct {
@@ -20,6 +22,7 @@ type Haivision struct {
 }
 
 type IHaivisionClient interface {
+	//
 	HealthCheck() error
 	IsDebug() bool
 	// auth stuff
@@ -27,25 +30,19 @@ type IHaivisionClient interface {
 	GetSessionInfo() (*session.ResponseSessionInfo, error)
 	GetDeviceInfo() (*device.BaseResponseDeviceInfo, error)
 	// Streaming
-	//GetRoutes(deviceId string) (route.ResponseRoutes[TS, TD], error)
-	GetRoutesSRT(deviceId string) (route.ResponseRoutes[srt.RequestSourceModelSRT, srt.RequestDestinationModelSrt], error)
-	GetRoutesRTMP(deviceId string) (route.ResponseRoutes[rtmp.RequestSourceModelRTMP, rtmp.RequestDestinationModelRtmp], error)
+	// GetRoutes(deviceId string) (route.ResponseRoutes[TS, TD], error)
+	GetRoutesSRT(deviceId string) (*route.ResponseRoutes[srt.RequestSourceModelSRT, srt.RequestDestinationModelSrt], error)
+	GetRoutesRTMP(deviceId string) (*route.ResponseRoutes[rtmp.RequestSourceModelRTMP, rtmp.RequestDestinationModelRtmp], error)
+	GetRoutesRtsp(deviceId string) (*route.ResponseRoutes[rtsp.RequestSourceModelRTSP, rtsp.RequestDestinationModelRtsp], error)
+	GetRoutesUdpRtp(deviceId string) (*route.ResponseRoutes[udprtp.RequestSourceModelUdpRtp, udprtp.RequestDestinationModelUdpRtp], error)
 	// CreateRoute() error
 	//
 }
 
 func (o *Haivision) HealthCheck() error {
-	resp, err := o.restClient.R().
-		SetHeader("Accept", "application/json").
-		Get(o.Url)
-	//
+	_, err := o.restyGet(o.Url, nil)
 	if err != nil {
-		return err
-	}
-	//
-	if !strings.Contains(resp.Status(), "200") {
-		o.debugPrint(fmt.Sprintf("resp -> %v", resp))
-		return errors.New("could not connect haproxy")
+		return nil
 	}
 	return nil
 }

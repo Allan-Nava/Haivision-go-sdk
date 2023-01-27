@@ -1,6 +1,14 @@
 package haivision
 
-import "log"
+import (
+	"log"
+
+	"github.com/Allan-Nava/Haivision-go-sdk/haivision/route"
+	"github.com/Allan-Nava/Haivision-go-sdk/haivision/rtmp"
+	"github.com/Allan-Nava/Haivision-go-sdk/haivision/rtsp"
+	"github.com/Allan-Nava/Haivision-go-sdk/haivision/srt"
+	udprtp "github.com/Allan-Nava/Haivision-go-sdk/haivision/udp_rtp"
+)
 
 /*
 Requests
@@ -19,13 +27,25 @@ Response
 	  "pendingRouteCreates": 1
 	}
 */
-func (o *Haivision) GetRoutes(deviceId string) error {
-	resp, err := o.restyGet(GET_LIST_OF_ROUTES(deviceId), nil)
-	if err != nil {
-		return err
-	}
-	log.Println(resp)
-	return nil
+
+func (o *Haivision) GetRoutesSRT(deviceId string) (*route.ResponseRoutes[srt.RequestSourceModelSRT, srt.RequestDestinationModelSrt], error) {
+	log.Println("GetRoutesSRT ", deviceId)
+	return nil, nil
+}
+
+func (o *Haivision) GetRoutesRTMP(deviceId string) (*route.ResponseRoutes[rtmp.RequestSourceModelRTMP, rtmp.RequestDestinationModelRtmp], error) {
+	log.Println("GetRoutesRTMP ", deviceId)
+	return nil, nil
+}
+
+func (o *Haivision) GetRoutesRtsp(deviceId string) (*route.ResponseRoutes[rtsp.RequestSourceModelRTSP, rtsp.RequestDestinationModelRtsp], error) {
+	log.Println("GetRoutesRtsp ", deviceId)
+	return nil, nil
+}
+
+func (o *Haivision) GetRoutesUdpRtp(deviceId string) (*route.ResponseRoutes[udprtp.RequestSourceModelUdpRtp, udprtp.RequestDestinationModelUdpRtp], error) {
+	log.Println("GetRoutesRtsp ", deviceId)
+	return nil, nil
 }
 
 /*
@@ -59,6 +79,3 @@ Response
 	  "status": "[success message]"
 	}
 */
-func (o *Haivision) CreateRoute(name string) error {
-	return nil
-}
