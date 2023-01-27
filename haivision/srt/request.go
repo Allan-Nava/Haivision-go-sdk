@@ -8,6 +8,7 @@ UDP and RTP
 SRT
 HLS
 */
+/*
 type RequestUdpRtpCreateRoute struct {
 	Action      string `json:"action" required:"true" validate:"nonnil,min=1"`
 	DeviceID    string `json:"deviceID" required:"true" validate:"nonnil,min=1"`
@@ -19,6 +20,7 @@ type RequestUdpRtpCreateRoute struct {
 		Destinations []RequestDestinationModelSrt `json:"destinations" required:"true"`
 	}
 }
+*/
 
 // https://doc.haivision.com/HMG3.7.5/rest-api-integrator-s-reference/rest-api-reference/object-model-reference/source-object-model?activetab=SRT%7EUDPandRTP
 
