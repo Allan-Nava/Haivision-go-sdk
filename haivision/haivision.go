@@ -37,14 +37,9 @@ func (o *Haivision) HealthCheck() error {
 	}
 	return nil
 }
+
 //
 
-func (o *Haivision) IsDebug() bool {
-	return o.debug
-}
-
-
-// 
 func (o *Haivision) IsDebug() bool {
 	return o.debug
 }
@@ -61,7 +56,7 @@ func (o *Haivision) restyPost(url string, body interface{}) (*resty.Response, er
 		return nil, err
 	}
 	if !strings.Contains(resp.Status(), "200") {
-		err = fmt.Errorf("%v",resp)
+		err = fmt.Errorf("%v", resp)
 		o.debugPrint(err)
 		return nil, err
 	}
@@ -78,10 +73,9 @@ func (o *Haivision) restyGet(url string, queryParams map[string]string) (*resty.
 	}
 	if !strings.Contains(resp.Status(), "200") {
 		resp.Body()
-		err = fmt.Errorf("%v",resp)
+		err = fmt.Errorf("%v", resp)
 		o.debugPrint(err)
 		return nil, err
 	}
 	return resp, nil
 }
-

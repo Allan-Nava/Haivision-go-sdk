@@ -20,8 +20,7 @@ Response
 }
 */
 
-
 // POST http://1.2.3.4:8081/v1/vhosts/default/apps/app:startPush
-func (o *Haivision) InitSession(username string, password string)  error {
-    
+func (o *Haivision) InitSession(username string, password string) error {
+	return nil
 }
