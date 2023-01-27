@@ -3,6 +3,7 @@ package haivision
 import (
 	"errors"
 	"fmt"
+	"github.com/Allan-Nava/Haivision-go-sdk/haivision/route"
 	"strings"
 
 	"github.com/Allan-Nava/Haivision-go-sdk/haivision/device"
@@ -16,7 +17,7 @@ type Haivision struct {
 	debug      bool
 }
 
-type IHaivisionClient interface {
+type IHaivisionClient[TS route.RequestSource, TD route.RequestDestination] interface {
 	HealthCheck() error
 	IsDebug() bool
 	// auth stuff
@@ -24,7 +25,7 @@ type IHaivisionClient interface {
 	GetSessionInfo() (*session.ResponseSessionInfo, error)
 	GetDeviceInfo() (*device.BaseResponseDeviceInfo, error)
 	// Streaming
-	//GetRoutes(deviceId string) (*RouteSrt, error)
+	GetRoutes(deviceId string) (route.ResponseRoutes[TS, TD], error)
 	// CreateRoute() error
 	//
 }
