@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/Allan-Nava/Haivision-go-sdk/haivision/device"
+	"github.com/Allan-Nava/Haivision-go-sdk/haivision/session"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -18,9 +20,9 @@ type IHaivisionClient interface {
 	HealthCheck() error
 	IsDebug() bool
 	// auth stuff
-	InitSession(username string, password string) (*BaseResponseInitSession, error)
-	GetSessionInfo() (*ResponseSessionInfo, error)
-	GetDeviceInfo() (*BaseResponseDeviceInfo, error)
+	InitSession(username string, password string) (*session.BaseResponseInitSession, error)
+	GetSessionInfo() (*session.ResponseSessionInfo, error)
+	GetDeviceInfo() (*device.BaseResponseDeviceInfo, error)
 	// Streaming
 	GetRoutes(deviceId string) error
 	// CreateRoute() error

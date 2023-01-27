@@ -5,6 +5,7 @@ import (
 
 	"gopkg.in/validator.v2"
 
+	"github.com/Allan-Nava/Haivision-go-sdk/haivision/device"
 	"github.com/Allan-Nava/Haivision-go-sdk/haivision/session"
 )
 
@@ -29,7 +30,7 @@ Response
 	    }
 	}
 */
-func (o *Haivision) InitSession(username string, password string) (*BaseResponseInitSession, error) {
+func (o *Haivision) InitSession(username string, password string) (*session.BaseResponseInitSession, error) {
 	var requestBody session.RequestInitSession
 	//
 	if errs := validator.Validate(requestBody); errs != nil {
@@ -40,7 +41,7 @@ func (o *Haivision) InitSession(username string, password string) (*BaseResponse
 	if err != nil {
 		return nil, err
 	}
-	var obj BaseResponseInitSession
+	var obj session.BaseResponseInitSession
 	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
 		return nil, err
 	}
@@ -73,12 +74,12 @@ Response
 
 ]
 */
-func (o *Haivision) GetDeviceInfo() (*BaseResponseDeviceInfo, error) {
+func (o *Haivision) GetDeviceInfo() (*device.BaseResponseDeviceInfo, error) {
 	resp, err := o.restyGet(DEVICE_INFO, nil)
 	if err != nil {
 		return nil, err
 	}
-	var obj BaseResponseDeviceInfo
+	var obj device.BaseResponseDeviceInfo
 	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
 		return nil, err
 	}
