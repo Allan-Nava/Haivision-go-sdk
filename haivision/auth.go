@@ -45,7 +45,42 @@ func (o *Haivision) InitSession(username string, password string) (*BaseResponse
 	return &obj, nil
 }
 
-// GET
-func (o *Haivision) GetDeviceInfo() error {
-	return nil
+/*
+Requests
+GET /api/devices
+cookie: sessionID: [Session ID]
+
+Response
+[
+
+	{
+	 "_id": "[Device ID]",
+	 "type": "gateway",
+	 "ip": "127.0.0.1",
+	 "name": "Haivision Gateway",
+	 "lastConnectedAt": [Date/time shown in Unix time],
+	 "statusCode": "ok",
+	 "status": "Online",
+	 "statusDetails": "Connection has been established in the last 1 minutes.",
+	 "serialNumber": null,
+	 "firmware": "5.0.180611.1530",
+	 "hasAdminError": false,
+	 "pendingSync": false,
+	 "lastConnection": "<1m"
+	}
+
+]
+*/
+func (o *Haivision) GetDeviceInfo() (*BaseResponseDeviceInfo, error) {
+	resp, err := o.restyGet(DEVICE_INFO, nil)
+	if err != nil {
+		return nil, err
+	}
+	var obj BaseResponseDeviceInfo
+	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
+		return nil, err
+	}
+	return &obj, nil
 }
+
+//
