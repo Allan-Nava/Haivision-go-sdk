@@ -7,8 +7,9 @@ const (
 	SESSION     = "/api/session"
 	DEVICE_INFO = "/api/devices"
 	// ROUTES
-	LIST_ROUTES  = "/api/gateway/%s/routes"
-	CREATE_ROUTE = "/api/devices/%s/updates"
+	LIST_ROUTES         = "/api/gateway/%s/routes"
+	CREATE_ROUTE        = "/api/devices/%s/updates"
+	ROUTE_CONFIGURATION = "/api/gateway/%s/routes/%s"
 	// STATS
 	ROUTES_STATISTICS = "/api/gateway/%s/statistics"
 	//
@@ -26,6 +27,10 @@ var (
 	//
 	GET_ROUTES_STATISTICS = func(deviceId string) string {
 		return fmt.Sprintf(ROUTES_STATISTICS, deviceId)
+	}
+	//
+	GET_ROUTE_CONFIGURATION = func(deviceId string, routeId string) string {
+		return fmt.Sprintf(ROUTE_CONFIGURATION, deviceId, routeId)
 	}
 	//
 )

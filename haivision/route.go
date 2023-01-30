@@ -1,6 +1,7 @@
 package haivision
 
 import (
+	"encoding/json"
 	"log"
 
 	"github.com/Allan-Nava/Haivision-go-sdk/haivision/route"
@@ -8,6 +9,8 @@ import (
 	"github.com/Allan-Nava/Haivision-go-sdk/haivision/rtsp"
 	"github.com/Allan-Nava/Haivision-go-sdk/haivision/srt"
 	udprtp "github.com/Allan-Nava/Haivision-go-sdk/haivision/udp_rtp"
+	"github.com/go-resty/resty/v2"
+	"gopkg.in/validator.v2"
 )
 
 /*
@@ -28,13 +31,13 @@ Response
 	}
 */
 
-func (o *Haivision) GetRoutesSRT(deviceId string) (*route.ResponseRoutes[srt.RequestSourceModelSRT, srt.RequestDestinationModelSrt], error) {
-	log.Println("GetRoutesSRT ", deviceId)
+func (o *Haivision) GetRoutesSrt(deviceId string) (*route.ResponseRoutes[srt.RequestSourceModelSRT, srt.RequestDestinationModelSrt], error) {
+	log.Println("GetRoutesSrt ", deviceId)
 	return nil, nil
 }
 
-func (o *Haivision) GetRoutesRTMP(deviceId string) (*route.ResponseRoutes[rtmp.RequestSourceModelRTMP, rtmp.RequestDestinationModelRtmp], error) {
-	log.Println("GetRoutesRTMP ", deviceId)
+func (o *Haivision) GetRoutesRtmp(deviceId string) (*route.ResponseRoutes[rtmp.RequestSourceModelRTMP, rtmp.RequestDestinationModelRtmp], error) {
+	log.Println("GetRoutesRtmp ", deviceId)
 	return nil, nil
 }
 
@@ -45,6 +48,16 @@ func (o *Haivision) GetRoutesRtsp(deviceId string) (*route.ResponseRoutes[rtsp.R
 
 func (o *Haivision) GetRoutesUdpRtp(deviceId string) (*route.ResponseRoutes[udprtp.RequestSourceModelUdpRtp, udprtp.RequestDestinationModelUdpRtp], error) {
 	log.Println("GetRoutesRtsp ", deviceId)
+	return nil, nil
+}
+
+func (o *Haivision) GetRoutes(deviceId string) (*resty.Response, error) {
+	log.Println("GetRoutes ", deviceId)
+	resp, err := o.restyGet(GET_LIST_OF_ROUTES(deviceId), nil)
+	if err != nil {
+		return nil, err
+	}
+	log.Println("GetRoutes ", resp)
 	return nil, nil
 }
 
@@ -79,3 +92,73 @@ Response
 	  "status": "[success message]"
 	}
 */
+
+func (o *Haivision) CreateRouteSrt(deviceId string, rBody *route.RouteModel[srt.RequestSourceModelSRT, srt.RequestDestinationModelSrt]) (*route.ResponseCreateRoute, error) {
+	log.Println("CreateRouteSrt ", deviceId)
+
+	if errs := validator.Validate(rBody); errs != nil {
+		// values not valid, deal with errors here
+		return nil, errs
+	}
+	resp, err := o.restyPost(POST_CREATE_ROUTE(deviceId), rBody)
+	if err != nil {
+		return nil, err
+	}
+	o.debugPrint(resp)
+	var obj route.ResponseCreateRoute
+	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
+		return nil, err
+	}
+	return &obj, nil
+}
+func (o *Haivision) CreateRouteRtmp(deviceId string, rBody *route.RouteModel[rtmp.RequestSourceModelRTMP, rtmp.RequestDestinationModelRtmp]) (*route.ResponseCreateRoute, error) {
+	log.Println("CreateRouteRtmp ", deviceId)
+	if errs := validator.Validate(rBody); errs != nil {
+		// values not valid, deal with errors here
+		return nil, errs
+	}
+	resp, err := o.restyPost(POST_CREATE_ROUTE(deviceId), rBody)
+	if err != nil {
+		return nil, err
+	}
+	o.debugPrint(resp)
+	var obj route.ResponseCreateRoute
+	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
+		return nil, err
+	}
+	return &obj, nil
+}
+func (o *Haivision) CreateRouteRtsp(deviceId string, rBody *route.RouteModel[rtsp.RequestSourceModelRTSP, rtsp.RequestDestinationModelRtsp]) (*route.ResponseCreateRoute, error) {
+	log.Println("CreateRouteRtsp ", deviceId)
+	if errs := validator.Validate(rBody); errs != nil {
+		// values not valid, deal with errors here
+		return nil, errs
+	}
+	resp, err := o.restyPost(POST_CREATE_ROUTE(deviceId), rBody)
+	if err != nil {
+		return nil, err
+	}
+	o.debugPrint(resp)
+	var obj route.ResponseCreateRoute
+	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
+		return nil, err
+	}
+	return &obj, nil
+}
+
+func (o *Haivision) CreateRouteUdpRtp(deviceId string, rBody *route.RouteModel[udprtp.RequestSourceModelUdpRtp, udprtp.RequestDestinationModelUdpRtp]) (*route.ResponseCreateRoute, error) {
+	log.Println("CreateRouteUdpRtp ", deviceId)
+	if errs := validator.Validate(rBody); errs != nil {
+		// values not valid, deal with errors here
+		return nil, errs
+	}
+	resp, err := o.restyPost(POST_CREATE_ROUTE(deviceId), rBody)
+	if err != nil {
+		return nil, err
+	}
+	var obj route.ResponseCreateRoute
+	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
+		return nil, err
+	}
+	return &obj, nil
+}

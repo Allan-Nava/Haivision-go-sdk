@@ -30,12 +30,19 @@ type IHaivisionClient interface {
 	GetSessionInfo() (*session.ResponseSessionInfo, error)
 	GetDeviceInfo() (*device.BaseResponseDeviceInfo, error)
 	// Streaming
-	// GetRoutes(deviceId string) (route.ResponseRoutes[TS, TD], error)
-	GetRoutesSRT(deviceId string) (*route.ResponseRoutes[srt.RequestSourceModelSRT, srt.RequestDestinationModelSrt], error)
-	GetRoutesRTMP(deviceId string) (*route.ResponseRoutes[rtmp.RequestSourceModelRTMP, rtmp.RequestDestinationModelRtmp], error)
+	//GetRoutes(deviceId string) (*route.ResponseRoutes, error)
+	GetRoutes(deviceId string) (*resty.Response, error)
+	GetRoutesSrt(deviceId string) (*route.ResponseRoutes[srt.RequestSourceModelSRT, srt.RequestDestinationModelSrt], error)
+	GetRoutesRtmp(deviceId string) (*route.ResponseRoutes[rtmp.RequestSourceModelRTMP, rtmp.RequestDestinationModelRtmp], error)
 	GetRoutesRtsp(deviceId string) (*route.ResponseRoutes[rtsp.RequestSourceModelRTSP, rtsp.RequestDestinationModelRtsp], error)
 	GetRoutesUdpRtp(deviceId string) (*route.ResponseRoutes[udprtp.RequestSourceModelUdpRtp, udprtp.RequestDestinationModelUdpRtp], error)
+	//
+	GetRouteConfiguration(deviceId string, routeId string) (*resty.Response, error) // *route.RouteModel[route.RequestSource, route.RequestDestination]
 	// CreateRoute() error
+	CreateRouteSrt(deviceId string, rBody *route.RouteModel[srt.RequestSourceModelSRT, srt.RequestDestinationModelSrt]) (*route.ResponseCreateRoute, error)
+	CreateRouteRtmp(deviceId string, rBody *route.RouteModel[rtmp.RequestSourceModelRTMP, rtmp.RequestDestinationModelRtmp]) (*route.ResponseCreateRoute, error)
+	CreateRouteRtsp(deviceId string, rBody *route.RouteModel[rtsp.RequestSourceModelRTSP, rtsp.RequestDestinationModelRtsp]) (*route.ResponseCreateRoute, error)
+	CreateRouteUdpRtp(deviceId string, rBody *route.RouteModel[udprtp.RequestSourceModelUdpRtp, udprtp.RequestDestinationModelUdpRtp]) (*route.ResponseCreateRoute, error)
 	//
 }
 
