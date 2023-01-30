@@ -31,7 +31,10 @@ Response
 	}
 */
 func (o *Haivision) InitSession(username string, password string) (*session.BaseResponseInitSession, error) {
-	var requestBody session.RequestInitSession
+	requestBody := &session.RequestInitSession{
+		Username: username,
+		Password: password,
+	}
 	//
 	if errs := validator.Validate(requestBody); errs != nil {
 		// values not valid, deal with errors here
