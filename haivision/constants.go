@@ -9,6 +9,7 @@ const (
 	// ROUTES
 	LIST_ROUTES         = "/api/gateway/%s/routes"
 	CREATE_ROUTE        = "/api/devices/%s/updates"
+	ROUTE_COMMMAND      = "/api/devices/%s/commands"
 	ROUTE_CONFIGURATION = "/api/gateway/%s/routes/%s"
 	// STATS
 	ROUTES_STATISTICS = "/api/gateway/%s/statistics"

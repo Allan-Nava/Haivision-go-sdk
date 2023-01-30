@@ -44,6 +44,8 @@ type IHaivisionClient interface {
 	CreateRouteRtsp(deviceId string, rBody *route.RouteModel[rtsp.RequestSourceModelRTSP, rtsp.RequestDestinationModelRtsp]) (*route.ResponseCreateRoute, error)
 	CreateRouteUdpRtp(deviceId string, rBody *route.RouteModel[udprtp.RequestSourceModelUdpRtp, udprtp.RequestDestinationModelUdpRtp]) (*route.ResponseCreateRoute, error)
 	//
+	StartOrStopRoute(deviceId string, routeId string, command string) (*route.ResponseStartOrRoute, error)
+	//
 }
 
 func (o *Haivision) HealthCheck() error {

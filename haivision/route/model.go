@@ -52,3 +52,30 @@ type RequestDestination interface {
 }
 
 //
+
+/*
+Requests
+POST /api/devices/[Device ID]/commands
+cookie: sessionID: [Session ID]
+
+{
+ "deviceID": "[Device ID]",
+ "command": "[command]",
+ "parameters": {
+  "routeID": "[Route ID]"
+ }
+}
+*/
+
+const (
+	START_ROUTE = "start-route"
+	STOP_ROUTE  = "stop-route"
+)
+
+type RequestStartOrStopRoutes struct {
+	DeviceID   string `json:"deviceID" required:"true" validate:"nonnil,min=1"`
+	Command    string `json:"command" required:"true" validate:"nonnil,min=1"`
+	Parameters struct {
+		RouteID string `json:"routeID" required:"true" validate:"nonnil,min=1"`
+	}
+}

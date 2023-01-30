@@ -75,3 +75,38 @@ func (r RouteModel[TS RequestSource, TD RequestDestination]) GetID() string {
 type ResponseCreateRoute struct {
 	Status string `json:"status"`
 }
+
+/*
+Response
+[
+  {
+    "action": "command",
+    "command": "start-route",
+    "parameters": {
+      "routeID": "[Route ID]"
+    },
+    "deviceID": "[Device ID]",
+    "createdAt": [Date/time in Unix time],
+    "completedAt": 0,
+    "result": null,
+    "state": "pending",
+    "_id": "a5x4-7KEApdS0UuAUUCSog"
+  }
+]
+*/
+
+type ResponseStartOrRoute struct {
+	Response []struct {
+		Action     string `json:"action"`
+		Command    string `json:"command"`
+		Parameters struct {
+			RouteID string `json:"routeID"`
+		} `json:"parameters"`
+		DeviceID    string `json:"deviceID"`
+		CreatedAt   int64  `json:"createdAt"`
+		CompletedAt int64  `json:"completedAt"`
+		Result      string `json:"result"`
+		State       string `json:"state"`
+		ID          string `json:"_id"`
+	}
+}

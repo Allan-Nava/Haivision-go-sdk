@@ -2,6 +2,7 @@ package haivision
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 
 	"github.com/Allan-Nava/Haivision-go-sdk/haivision/route"
@@ -157,6 +158,39 @@ func (o *Haivision) CreateRouteUdpRtp(deviceId string, rBody *route.RouteModel[u
 		return nil, err
 	}
 	var obj route.ResponseCreateRoute
+	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
+		return nil, err
+	}
+	return &obj, nil
+}
+
+// Start or Stop a route
+func (o *Haivision) StartOrStopRoute(deviceId string, routeId string, command string) (*route.ResponseStartOrRoute, error) {
+	log.Println("StartOrStopRoute ", deviceId, routeId, command)
+	if command != route.START_ROUTE && command != route.STOP_ROUTE {
+		return nil, errors.New("command must be start-route or stop-route")
+	}
+	rBody := &route.RequestStartOrStopRoutes{
+		Command:  command,
+		DeviceID: deviceId,
+		Parameters: struct {
+			RouteID string "json:\"routeID\" required:\"true\" validate:\"nonnil,min=1\""
+		}{
+			RouteID: routeId,
+		},
+	}
+	if errs := validator.Validate(rBody); errs != nil {
+		// values not valid, deal with errors here
+		return nil, errs
+	}
+	//
+	resp, err := o.restyPost(POST_CREATE_ROUTE(deviceId), rBody)
+	if err != nil {
+		return nil, err
+	}
+	o.debugPrint(resp)
+	//
+	var obj route.ResponseStartOrRoute
 	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
 		return nil, err
 	}
