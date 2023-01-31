@@ -83,6 +83,7 @@ func (o *Haivision) GetDeviceInfo() (*device.BaseResponseDeviceInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	log.Println("GetDeviceInfo resp ",resp.Body())
 	var obj device.BaseResponseDeviceInfo
 	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
 		return nil, err
