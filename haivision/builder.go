@@ -1,6 +1,7 @@
 package haivision
 
 import (
+	"crypto/tls"
 	"log"
 	"net/http"
 
@@ -8,7 +9,7 @@ import (
 )
 
 // Builder is used to build a new haivision client
-func BuildHaivision(url string, debug bool, username string, password string, header *HeaderConfigurator) (*Haivision, error) {
+func BuildHaivision(url string, debug bool, username string, password string, header *HeaderConfigurator, insecure *bool) (*Haivision, error) {
 	// init haivision
 	haivisionClient := &Haivision{
 		Url:        url,
@@ -18,6 +19,10 @@ func BuildHaivision(url string, debug bool, username string, password string, he
 	//--------------------------------------------------------------------------------
 	// Host URL for all request. So you can use relative URL in the request
 	haivisionClient.restClient.SetBaseURL(url)
+	if insecure != nil {
+		haivisionClient.restClient.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+		log.Println("Insecure mode is enabled for the haivision client ")
+	}
 	respSessionId, err := haivisionClient.InitSession(username, password)
 	if err != nil {
 		return nil, err
