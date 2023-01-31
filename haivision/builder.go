@@ -43,9 +43,9 @@ func BuildHaivision(url string, debug bool, username string, password string, he
 	if err != nil {
 		return nil, err
 	}
-	if len(deviceResponse.Responses) > 0 {
-		haivisionClient.DeviceID = deviceResponse.Responses[0].ID
-		haivisionClient.HType = deviceResponse.Responses[0].Type
+	if deviceResponse != nil {
+		haivisionClient.DeviceID = (*deviceResponse)[0].ID
+		haivisionClient.HType = (*deviceResponse)[0].Type
 	}
 	//
 	if header != nil {
