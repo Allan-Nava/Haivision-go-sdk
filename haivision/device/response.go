@@ -1,8 +1,8 @@
 package device
 
-type BaseResponseDeviceInfo struct {
+/*type BaseResponseDeviceInfo struct {
 	Responses []ResponseDeviceInfo
-}
+}*/
 
 /*
 	{

@@ -30,7 +30,7 @@ type IHaivisionClient interface {
 	// auth stuff
 	InitSession(username string, password string) (*session.BaseResponseInitSession, error)
 	GetSessionInfo() (*session.ResponseSessionInfo, error)
-	GetDeviceInfo() (*device.BaseResponseDeviceInfo, error)
+	GetDeviceInfo() (*[]device.ResponseDeviceInfo, error)
 	// Streaming
 	//GetRoutes(deviceId string) (*route.ResponseRoutes, error)
 	GetRoutes(deviceId string) (*resty.Response, error)
