@@ -51,6 +51,17 @@ type RequestDestination interface {
 	srt.RequestDestinationModelSrt | udprtp.RequestDestinationModelUdpRtp | rtmp.RequestDestinationModelRtmp | rtsp.RequestDestinationModelRtsp
 }
 
+/*
+type BaseSource struct {
+	Name             string `json:"name" required:"true" validate:"nonnil,min=1"`
+	ID               string `json:"id" required:"true" validate:"nonnil,min=1"`
+	Address          string `json:"address" required:"true" validate:"nonnil,min=1"`
+	Protocol         string `json:"protocol" required:"true" validate:"nonnil,min=1"`
+	Port             string `json:"port" required:"true" validate:"nonnil,min=1"`
+	NetworkInterface string `json:"networkInterface" required:"true" validate:"nonnil,min=1"`
+	RetainHeader     bool   `json:"retainheader" required:"true" validate:"nonnil,min=1"`
+}*/
+
 //
 
 /*

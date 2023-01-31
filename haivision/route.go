@@ -31,7 +31,7 @@ Response
 	  "pendingRouteCreates": 1
 	}
 */
-
+/*
 func (o *Haivision) GetRoutesSrt(deviceId string) (*route.ResponseRoutes[srt.RequestSourceModelSRT, srt.RequestDestinationModelSrt], error) {
 	log.Println("GetRoutesSrt ", deviceId)
 	return nil, nil
@@ -50,7 +50,7 @@ func (o *Haivision) GetRoutesRtsp(deviceId string) (*route.ResponseRoutes[rtsp.R
 func (o *Haivision) GetRoutesUdpRtp(deviceId string) (*route.ResponseRoutes[udprtp.RequestSourceModelUdpRtp, udprtp.RequestDestinationModelUdpRtp], error) {
 	log.Println("GetRoutesRtsp ", deviceId)
 	return nil, nil
-}
+}*/
 
 func (o *Haivision) GetRoutes(deviceId string) (*resty.Response, error) {
 	log.Println("GetRoutes ", deviceId)

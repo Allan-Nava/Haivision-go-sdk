@@ -32,10 +32,10 @@ type IHaivisionClient interface {
 	// Streaming
 	//GetRoutes(deviceId string) (*route.ResponseRoutes, error)
 	GetRoutes(deviceId string) (*resty.Response, error)
-	GetRoutesSrt(deviceId string) (*route.ResponseRoutes[srt.RequestSourceModelSRT, srt.RequestDestinationModelSrt], error)
+	/*GetRoutesSrt(deviceId string) (*route.ResponseRoutes[srt.RequestSourceModelSRT, srt.RequestDestinationModelSrt], error)
 	GetRoutesRtmp(deviceId string) (*route.ResponseRoutes[rtmp.RequestSourceModelRTMP, rtmp.RequestDestinationModelRtmp], error)
 	GetRoutesRtsp(deviceId string) (*route.ResponseRoutes[rtsp.RequestSourceModelRTSP, rtsp.RequestDestinationModelRtsp], error)
-	GetRoutesUdpRtp(deviceId string) (*route.ResponseRoutes[udprtp.RequestSourceModelUdpRtp, udprtp.RequestDestinationModelUdpRtp], error)
+	GetRoutesUdpRtp(deviceId string) (*route.ResponseRoutes[udprtp.RequestSourceModelUdpRtp, udprtp.RequestDestinationModelUdpRtp], error)*/
 	//
 	GetRouteConfiguration(deviceId string, routeId string) (*resty.Response, error) // *route.RouteModel[route.RequestSource, route.RequestDestination]
 	// CreateRoute() error
