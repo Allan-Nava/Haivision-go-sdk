@@ -15,6 +15,12 @@ func BuildHaivision(url string, debug bool, username string, password string, he
 		Url:        url,
 		restClient: resty.New(),
 	}
+	//
+	if debug {
+		haivisionClient.restClient.SetDebug(true)
+		haivisionClient.debug = true
+		log.Println("Debug mode is enabled for the haivision client ")
+	}
 	// You can override all below settings and options at request level if you want to
 	//--------------------------------------------------------------------------------
 	// Host URL for all request. So you can use relative URL in the request
@@ -38,12 +44,6 @@ func BuildHaivision(url string, debug bool, username string, password string, he
 		for h, v := range header.GetHeaders() {
 			haivisionClient.restClient.SetHeader(h, v)
 		}
-	}
-	//
-	if debug {
-		haivisionClient.restClient.SetDebug(true)
-		haivisionClient.debug = true
-		log.Println("Debug mode is enabled for the haivision client ")
 	}
 	return haivisionClient, nil
 }
