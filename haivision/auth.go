@@ -78,13 +78,14 @@ Response
 
 ]
 */
-func (o *Haivision) GetDeviceInfo() (*device.BaseResponseDeviceInfo, error) {
+func (o *Haivision) GetDeviceInfo() (*[]device.ResponseDeviceInfo, error) {
 	resp, err := o.restyGet(DEVICE_INFO, nil)
 	if err != nil {
 		return nil, err
 	}
 	//log.Println("GetDeviceInfo resp ",resp.Body())
-	var obj device.BaseResponseDeviceInfo
+	//var obj device.BaseResponseDeviceInfo
+	var obj []device.ResponseDeviceInfo
 	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
 		return nil, err
 	}
