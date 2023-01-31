@@ -2,6 +2,7 @@ package haivision
 
 import (
 	"encoding/json"
+	"log"
 
 	"gopkg.in/validator.v2"
 
