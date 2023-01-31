@@ -44,6 +44,7 @@ func (o *Haivision) InitSession(username string, password string) (*session.Base
 	if err != nil {
 		return nil, err
 	}
+	o.debugPrint(resp)
 	var obj session.BaseResponseInitSession
 	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
 		return nil, err
