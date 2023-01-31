@@ -18,6 +18,8 @@ import (
 type Haivision struct {
 	Url        string
 	restClient *resty.Client
+	DeviceID   string
+	HType 	   string
 	debug      bool
 }
 
