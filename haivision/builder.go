@@ -39,12 +39,14 @@ func BuildHaivision(url string, debug bool, username string, password string, he
 		Value: respSessionId.Response.SessionID,
 	})
 	//
-	deviceResponse, err = haivisionClient.GetDeviceInfo()
+	deviceResponse, err := haivisionClient.GetDeviceInfo()
 	if err != nil {
 		return nil, err
 	}
-	o.DeviceID = deviceResponse.ID
-	o.HType    = deviceResponse.Type
+	if len(deviceResponse.Responses) > 0 {
+		haivisionClient.DeviceID = deviceResponse.Responses[0].ID
+		haivisionClient.HType = deviceResponse.Responses[0].Type
+	}
 	//
 	if header != nil {
 		// Headers for all request
