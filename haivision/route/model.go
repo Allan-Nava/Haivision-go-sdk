@@ -1,6 +1,7 @@
 package route
 
 import (
+	"github.com/Allan-Nava/Haivision-go-sdk/haivision/hls"
 	"github.com/Allan-Nava/Haivision-go-sdk/haivision/rtmp"
 	"github.com/Allan-Nava/Haivision-go-sdk/haivision/rtsp"
 	"github.com/Allan-Nava/Haivision-go-sdk/haivision/srt"
@@ -49,6 +50,14 @@ type RequestSource interface {
 // request destination
 type RequestDestination interface {
 	srt.RequestDestinationModelSrt | udprtp.RequestDestinationModelUdpRtp | rtmp.RequestDestinationModelRtmp | rtsp.RequestDestinationModelRtsp
+}
+
+type ResponseSource interface {
+	udprtp.ResponseSourceUdpRtp | srt.ResponseSourceSrt | rtmp.ResponseSourceRtmp
+}
+
+type ResponseDestination interface {
+	udprtp.ResponseDestinationUdpRtp | srt.ResponseDestinationSrt | hls.ResponseDestinationHls
 }
 
 /*
