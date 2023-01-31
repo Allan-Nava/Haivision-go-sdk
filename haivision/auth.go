@@ -2,7 +2,6 @@ package haivision
 
 import (
 	"encoding/json"
-	"log"
 
 	"gopkg.in/validator.v2"
 
@@ -84,7 +83,7 @@ func (o *Haivision) GetDeviceInfo() (*device.BaseResponseDeviceInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Println("GetDeviceInfo resp ",resp.Body())
+	//log.Println("GetDeviceInfo resp ",resp.Body())
 	var obj device.BaseResponseDeviceInfo
 	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
 		return nil, err

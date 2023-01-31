@@ -22,18 +22,18 @@ type BaseResponseDeviceInfo struct {
 		}
 */
 type ResponseDeviceInfo struct {
-	ID               string `json:"_id" validate:"nonzero"`
-	Type             string `json:"type" validate:"nonzero"`
-	IP               string `json:"ip" validate:"nonzero"`
-	Name             string `json:"name" validate:"nonzero"`
-	LastConnectedAt  int64  `json:"lastConnectedAt" validate:"nonzero"`
-	StatusCode       string `json:"statusCode" validate:"nonzero"`
-	Status           string `json:"status" validate:"nonzero"`
-	StatusDetails    string `json:"statusDetails" validate:"nonzero"`
-	SerialNumber     string `json:"serialNumber" validate:"nonzero"`
-	Firmware         string `json:"firmware" validate:"nonzero"`
-	HasAdminError    bool   `json:"hasAdminError" validate:"nonzero"`
-	PendingSync      bool   `json:"pendingSync" validate:"nonzero"`
-	LastConnection   string `json:"lastConnection" validate:"nonzero"`
-	LastConnectionAt string `json:"lastConnectionAt" validate:"nonzero"`
+	ID               string `json:"_id" `
+	Type             string `json:"type" `
+	IP               string `json:"ip" `
+	Name             string `json:"name" `
+	LastConnectedAt  int64  `json:"lastConnectedAt" `
+	StatusCode       string `json:"statusCode" `
+	Status           string `json:"status" `
+	StatusDetails    string `json:"statusDetails" `
+	SerialNumber     *string `json:"serialNumber" `
+	Firmware         string `json:"firmware" `
+	HasAdminError    bool   `json:"hasAdminError" `
+	PendingSync      bool   `json:"pendingSync" `
+	LastConnection   string `json:"lastConnection" `
+	LastConnectionAt string `json:"lastConnectionAt" `
 }
