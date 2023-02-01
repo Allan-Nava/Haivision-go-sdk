@@ -3,7 +3,7 @@ layout: default
 title: Managing and Configuring Routes
 nav_order: 3
 description: "Haivision Go SDK Official Documentation"
-permalink: /
+permalink: /route
 last_modified_date: 2023-02-01T10:00:00+0000
 ---
 
