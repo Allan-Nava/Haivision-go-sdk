@@ -58,8 +58,8 @@ func (o *Haivision) GetRoutes(deviceId string) (*resty.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Println("GetRoutes ", resp)
-	return nil, nil
+	//log.Println("GetRoutes ", resp)
+	return resp, nil
 }
 
 /*
