@@ -276,3 +276,36 @@ type DestinationStatisticsSrtConnectionsModel struct {
 	State                       string `json:"state"`
 	UsedBandwidth               int    `json:"usedBandwidth"`
 }
+
+/*
+	{
+	  "collectedAt": [Date/time in Unix time],
+	  "route": {
+	    "name": "[Route Name]",
+	    "elapsedRunningTime": "00:00:14",
+	    "id": "[Route ID]",
+	    "state": "running",
+	    "source": {
+	      <Source Statistics object>
+	    },
+	    "destinations": [
+	      {
+	        <Destination Statistics object>
+	      }
+	    ]
+	  }
+	}
+*/
+type ResponseRouteStatistics struct {
+	CollectedAt string `json:"collectedAt"`
+	Route       struct {
+		Name               string                `json:"name"`
+		ElapsedRunningTime string                `json:"elapsedRunningTime"`
+		ID                 string                `json:"id"`
+		State              string                `json:"state"`
+		Source             SourceStatisticsModel `json:"source"`
+		Destinations       []interface{}         `json:"destinations"`
+	} `json:"route"`
+}
+
+//

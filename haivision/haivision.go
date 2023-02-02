@@ -12,6 +12,7 @@ import (
 	"github.com/Allan-Nava/Haivision-go-sdk/haivision/rtsp"
 	"github.com/Allan-Nava/Haivision-go-sdk/haivision/session"
 	"github.com/Allan-Nava/Haivision-go-sdk/haivision/srt"
+	"github.com/Allan-Nava/Haivision-go-sdk/haivision/stats"
 	udprtp "github.com/Allan-Nava/Haivision-go-sdk/haivision/udp_rtp"
 )
 
@@ -19,7 +20,7 @@ type Haivision struct {
 	Url        string
 	restClient *resty.Client
 	DeviceID   string
-	HType 	   string
+	HType      string
 	debug      bool
 }
 
@@ -48,6 +49,7 @@ type IHaivisionClient interface {
 	//
 	StartOrStopRoute(deviceId string, routeId string, command string) (*route.ResponseStartOrRoute, error)
 	//
+	GetRouteStatistics(deviceId string, routeId string) (*stats.ResponseRouteStatistics, error)
 }
 
 func (o *Haivision) HealthCheck() error {
