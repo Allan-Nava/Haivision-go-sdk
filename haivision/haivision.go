@@ -53,6 +53,7 @@ type IHaivisionClient interface {
 	GetSourceStatistics(deviceId string, routeId string, sourceId string) (*stats.ResponseSourceStatistics, error)
 	GetDestinationStatisticsById(deviceId string, routeId string, destinationID string) (*stats.ResponseDestinationStatistics, error)
 	GetDestinationStatisticsByName(deviceId string, routeId string, destinationName string) (*stats.ResponseDestinationStatistics, error)
+	GetSrtClientStatistics(deviceId string, routeId string, destinationID string, clientAddress string, clientPort string) (*stats.ResponseSrtClientStatistics, error)
 	//
 }
 

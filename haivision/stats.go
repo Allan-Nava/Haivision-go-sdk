@@ -98,3 +98,30 @@ func (o *Haivision) GetDestinationStatisticsByName(deviceId string, routeId stri
 	}
 	return &obj, nil
 }
+
+/*
+GET /api/gateway/[Device ID]/statistics/client?routeID=[Route ID]&destinationID=
+  [Destination ID]&clientAddress=[Client Address]&clientPort=[Client Port]
+cookie: sessionID: [Session ID]
+*/
+
+func (o *Haivision) GetSrtClientStatistics(deviceId string, routeId string, destinationID string, clientAddress string, clientPort string) (*stats.ResponseSrtClientStatistics, error) {
+	log.Println("GetStats ", deviceId, routeId, destinationID)
+	queryParams := map[string]string{
+		"routeID":       routeId,
+		"destinationID": destinationID,
+		"clientAddress": clientAddress,
+		"clientPort":    clientPort,
+	}
+	resp, err := o.restyGet(GET_ROUTES_STATISTICS(deviceId), queryParams)
+	if err != nil {
+		return nil, err
+	}
+	var obj stats.ResponseSrtClientStatistics
+	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
+		return nil, err
+	}
+	return &obj, nil
+}
+
+//

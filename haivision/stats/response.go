@@ -335,3 +335,16 @@ type ResponseDestinationStatistics struct {
 	CollectedAt string      `json:"collectedAt"`
 	Destination interface{} `json:"destination"`
 }
+
+/*
+	{
+	  "collectedAt": [Date/time in Unix time],
+	  "clientStat": [
+	    <Client Statistics Object>
+	  ]
+	}
+*/
+type ResponseSrtClientStatistics struct {
+	CollectedAt string        `json:"collectedAt"`
+	ClientStat  []interface{} `json:"clientStat"`
+}
