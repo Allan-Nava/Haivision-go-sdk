@@ -64,3 +64,37 @@ GET /api/gateway/[Device ID]/statistics?routeID=[Route ID]&destinationName=
 cookie: sessionID: [Session ID]
 
 */
+
+func (o *Haivision) GetDestinationStatisticsById(deviceId string, routeId string, destinationID string) (*stats.ResponseDestinationStatistics, error) {
+	log.Println("GetStats ", deviceId, routeId, destinationID)
+	queryParams := map[string]string{
+		"routeID":       routeId,
+		"destinationID": destinationID,
+	}
+	resp, err := o.restyGet(GET_ROUTES_STATISTICS(deviceId), queryParams)
+	if err != nil {
+		return nil, err
+	}
+	var obj stats.ResponseDestinationStatistics
+	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
+		return nil, err
+	}
+	return &obj, nil
+}
+
+func (o *Haivision) GetDestinationStatisticsByName(deviceId string, routeId string, destinationName string) (*stats.ResponseDestinationStatistics, error) {
+	log.Println("GetStats ", deviceId, routeId, destinationName)
+	queryParams := map[string]string{
+		"routeID":         routeId,
+		"destinationName": destinationName,
+	}
+	resp, err := o.restyGet(GET_ROUTES_STATISTICS(deviceId), queryParams)
+	if err != nil {
+		return nil, err
+	}
+	var obj stats.ResponseDestinationStatistics
+	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
+		return nil, err
+	}
+	return &obj, nil
+}

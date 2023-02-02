@@ -322,3 +322,16 @@ type ResponseSourceStatistics struct {
 	CollectedAt string                `json:"collectedAt"`
 	Source      SourceStatisticsModel `json:"source"`
 }
+
+/*
+	{
+	  "collectedAt": [Date/time in Unix time],
+	  "destination": {
+	    <Destination Statistics Object>
+	  }
+	}
+*/
+type ResponseDestinationStatistics struct {
+	CollectedAt string      `json:"collectedAt"`
+	Destination interface{} `json:"destination"`
+}
