@@ -50,6 +50,8 @@ type IHaivisionClient interface {
 	StartOrStopRoute(deviceId string, routeId string, command string) (*route.ResponseStartOrRoute, error)
 	//
 	GetRouteStatistics(deviceId string, routeId string) (*stats.ResponseRouteStatistics, error)
+	GetSourceStatistics(deviceId string, routeId string, sourceId string) (*stats.ResponseSourceStatistics, error)
+	//
 }
 
 func (o *Haivision) HealthCheck() error {

@@ -309,3 +309,16 @@ type ResponseRouteStatistics struct {
 }
 
 //
+
+/*
+	{
+	  "collectedAt": [Date/time in Unix time],
+	  "source": {
+	    <Source Statistics Object>
+	  }
+	}
+*/
+type ResponseSourceStatistics struct {
+	CollectedAt string                `json:"collectedAt"`
+	Source      SourceStatisticsModel `json:"source"`
+}
