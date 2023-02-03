@@ -332,7 +332,7 @@ type ResponseSourceStatistics struct {
 	}
 */
 type ResponseDestinationStatistics struct {
-	CollectedAt string      `json:"collectedAt"`
+	CollectedAt int64      `json:"collectedAt"`
 	Destination interface{} `json:"destination"`
 }
 
