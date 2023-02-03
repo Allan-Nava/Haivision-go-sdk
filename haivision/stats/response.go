@@ -297,7 +297,7 @@ type DestinationStatisticsSrtConnectionsModel struct {
 	}
 */
 type ResponseRouteStatistics struct {
-	CollectedAt string `json:"collectedAt"`
+	CollectedAt int64 `json:"collectedAt"`
 	Route       struct {
 		Name               string                `json:"name"`
 		ElapsedRunningTime string                `json:"elapsedRunningTime"`
@@ -319,7 +319,7 @@ type ResponseRouteStatistics struct {
 	}
 */
 type ResponseSourceStatistics struct {
-	CollectedAt string                `json:"collectedAt"`
+	CollectedAt int64                `json:"collectedAt"`
 	Source      SourceStatisticsModel `json:"source"`
 }
 
@@ -345,6 +345,6 @@ type ResponseDestinationStatistics struct {
 	}
 */
 type ResponseSrtClientStatistics struct {
-	CollectedAt string        `json:"collectedAt"`
+	CollectedAt int64        `json:"collectedAt"`
 	ClientStat  []interface{} `json:"clientStat"`
 }
