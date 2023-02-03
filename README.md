@@ -1,5 +1,7 @@
 # Haivision Go SDK
 [![Go build](https://github.com/Allan-Nava/Haivision-go-sdk/actions/workflows/go-build.yml/badge.svg)](https://github.com/Allan-Nava/Haivision-go-sdk/actions/workflows/go-build.yml)
+[![Go test workflow](https://github.com/Allan-Nava/Haivision-go-sdk/actions/workflows/go-test.yml/badge.svg)](https://github.com/Allan-Nava/Haivision-go-sdk/actions/workflows/go-test.yml)
+
 
 The Haivision Go SDK is a software development kit for interacting with Haivision's video streaming platform using the Go programming language. It allows developers to easily integrate Haivision's platform into their Go applications, providing access to a wide range of features such as live streaming, video playback, and media management.
 
