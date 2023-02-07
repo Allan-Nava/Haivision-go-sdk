@@ -28,6 +28,8 @@ type IHaivisionClient interface {
 	//
 	HealthCheck() error
 	IsDebug() bool
+	GetDeviceID() string
+	GetHType() string
 	// auth stuff
 	InitSession(username string, password string) (*session.BaseResponseInitSession, error)
 	GetSessionInfo() (*session.ResponseSessionInfo, error)
@@ -69,6 +71,14 @@ func (o *haivisionSdk) HealthCheck() error {
 
 func (o *haivisionSdk) IsDebug() bool {
 	return o.debug
+}
+
+func (o *haivisionSdk) GetDeviceID() string {
+	return o.DeviceID
+}
+
+func (o *haivisionSdk) GetHType() string {
+	return o.HType
 }
 
 // Resty Methods
