@@ -12,7 +12,7 @@ GET /api/gateway/[Device ID]/statistics?routeID=[Route ID]
 cookie: sessionID: [Session ID]
 */
 
-func (o *Haivision) GetRouteStatistics(deviceId string, routeId string) (*stats.ResponseRouteStatistics, error) {
+func (o *haivisionSdk) GetRouteStatistics(deviceId string, routeId string) (*stats.ResponseRouteStatistics, error) {
 	log.Println("GetStats ", deviceId, routeId)
 	queryParams := map[string]string{
 		"routeID": routeId,
@@ -34,7 +34,7 @@ GET /api/gateway/[Device ID]/statistics?routeID=[Route ID]&sourceID=[Source ID]
 cookie: sessionID: [Session ID]
 */
 
-func (o *Haivision) GetSourceStatistics(deviceId string, routeId string, sourceId string) (*stats.ResponseSourceStatistics, error) {
+func (o *haivisionSdk) GetSourceStatistics(deviceId string, routeId string, sourceId string) (*stats.ResponseSourceStatistics, error) {
 	log.Println("GetStats ", deviceId, routeId, sourceId)
 	queryParams := map[string]string{
 		"routeID":  routeId,
@@ -65,7 +65,7 @@ cookie: sessionID: [Session ID]
 
 */
 
-func (o *Haivision) GetDestinationStatisticsById(deviceId string, routeId string, destinationID string) (*stats.ResponseDestinationStatistics, error) {
+func (o *haivisionSdk) GetDestinationStatisticsById(deviceId string, routeId string, destinationID string) (*stats.ResponseDestinationStatistics, error) {
 	log.Println("GetStats ", deviceId, routeId, destinationID)
 	queryParams := map[string]string{
 		"routeID":       routeId,
@@ -82,7 +82,7 @@ func (o *Haivision) GetDestinationStatisticsById(deviceId string, routeId string
 	return &obj, nil
 }
 
-func (o *Haivision) GetDestinationStatisticsByName(deviceId string, routeId string, destinationName string) (*stats.ResponseDestinationStatistics, error) {
+func (o *haivisionSdk) GetDestinationStatisticsByName(deviceId string, routeId string, destinationName string) (*stats.ResponseDestinationStatistics, error) {
 	log.Println("GetStats ", deviceId, routeId, destinationName)
 	queryParams := map[string]string{
 		"routeID":         routeId,
@@ -105,7 +105,7 @@ GET /api/gateway/[Device ID]/statistics/client?routeID=[Route ID]&destinationID=
 cookie: sessionID: [Session ID]
 */
 
-func (o *Haivision) GetSrtClientStatistics(deviceId string, routeId string, destinationID string, clientAddress string, clientPort string) (*stats.ResponseSrtClientStatistics, error) {
+func (o *haivisionSdk) GetSrtClientStatistics(deviceId string, routeId string, destinationID string, clientAddress string, clientPort string) (*stats.ResponseSrtClientStatistics, error) {
 	log.Println("GetStats ", deviceId, routeId, destinationID)
 	queryParams := map[string]string{
 		"routeID":       routeId,

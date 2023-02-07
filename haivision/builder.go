@@ -9,9 +9,9 @@ import (
 )
 
 // Builder is used to build a new haivision client
-func BuildHaivision(url string, debug bool, username string, password string, header *HeaderConfigurator, insecure *bool) (*Haivision, error) {
+func BuildHaivision(url string, debug bool, username string, password string, header *HeaderConfigurator, insecure *bool) (IHaivisionClient, error) {
 	// init haivision
-	haivisionClient := &Haivision{
+	haivisionClient := &haivisionSdk{
 		Url:        url,
 		restClient: resty.New(),
 	}
@@ -57,7 +57,7 @@ func BuildHaivision(url string, debug bool, username string, password string, he
 	return haivisionClient, nil
 }
 
-func (o *Haivision) debugPrint(data interface{}) {
+func (o *haivisionSdk) debugPrint(data interface{}) {
 	if o.debug {
 		log.Println(data)
 	}

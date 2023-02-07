@@ -52,13 +52,22 @@ func (o *Haivision) GetRoutesUdpRtp(deviceId string) (*route.ResponseRoutes[udpr
 	return nil, nil
 }*/
 
-func (o *Haivision) GetRoutes(deviceId string) (*resty.Response, error) {
+func (o *haivisionSdk) GetRoutes(deviceId string) (*resty.Response, error) {
 	log.Println("GetRoutes ", deviceId)
 	resp, err := o.restyGet(GET_LIST_OF_ROUTES(deviceId), nil)
 	if err != nil {
 		return nil, err
 	}
 	//log.Println("GetRoutes ", resp)
+	return resp, nil
+}
+
+func (o *haivisionSdk) GetRouteConfiguration(deviceId string, routeId string) (*resty.Response, error) {
+	log.Println("GetRouteConfiguration ", deviceId, routeId)
+	resp, err := o.restyGet(GET_ROUTE_CONFIGURATION(deviceId, routeId), nil)
+	if err != nil {
+		return nil, err
+	}
 	return resp, nil
 }
 
@@ -94,7 +103,7 @@ Response
 	}
 */
 
-func (o *Haivision) CreateRouteSrt(deviceId string, rBody *route.RouteModel[srt.RequestSourceModelSRT, srt.RequestDestinationModelSrt]) (*route.ResponseCreateRoute, error) {
+func (o *haivisionSdk) CreateRouteSrt(deviceId string, rBody *route.RouteModel[srt.RequestSourceModelSRT, srt.RequestDestinationModelSrt]) (*route.ResponseCreateRoute, error) {
 	log.Println("CreateRouteSrt ", deviceId)
 
 	if errs := validator.Validate(rBody); errs != nil {
@@ -112,7 +121,7 @@ func (o *Haivision) CreateRouteSrt(deviceId string, rBody *route.RouteModel[srt.
 	}
 	return &obj, nil
 }
-func (o *Haivision) CreateRouteRtmp(deviceId string, rBody *route.RouteModel[rtmp.RequestSourceModelRTMP, rtmp.RequestDestinationModelRtmp]) (*route.ResponseCreateRoute, error) {
+func (o *haivisionSdk) CreateRouteRtmp(deviceId string, rBody *route.RouteModel[rtmp.RequestSourceModelRTMP, rtmp.RequestDestinationModelRtmp]) (*route.ResponseCreateRoute, error) {
 	log.Println("CreateRouteRtmp ", deviceId)
 	if errs := validator.Validate(rBody); errs != nil {
 		// values not valid, deal with errors here
@@ -129,7 +138,7 @@ func (o *Haivision) CreateRouteRtmp(deviceId string, rBody *route.RouteModel[rtm
 	}
 	return &obj, nil
 }
-func (o *Haivision) CreateRouteRtsp(deviceId string, rBody *route.RouteModel[rtsp.RequestSourceModelRTSP, rtsp.RequestDestinationModelRtsp]) (*route.ResponseCreateRoute, error) {
+func (o *haivisionSdk) CreateRouteRtsp(deviceId string, rBody *route.RouteModel[rtsp.RequestSourceModelRTSP, rtsp.RequestDestinationModelRtsp]) (*route.ResponseCreateRoute, error) {
 	log.Println("CreateRouteRtsp ", deviceId)
 	if errs := validator.Validate(rBody); errs != nil {
 		// values not valid, deal with errors here
@@ -147,7 +156,7 @@ func (o *Haivision) CreateRouteRtsp(deviceId string, rBody *route.RouteModel[rts
 	return &obj, nil
 }
 
-func (o *Haivision) CreateRouteUdpRtp(deviceId string, rBody *route.RouteModel[udprtp.RequestSourceModelUdpRtp, udprtp.RequestDestinationModelUdpRtp]) (*route.ResponseCreateRoute, error) {
+func (o *haivisionSdk) CreateRouteUdpRtp(deviceId string, rBody *route.RouteModel[udprtp.RequestSourceModelUdpRtp, udprtp.RequestDestinationModelUdpRtp]) (*route.ResponseCreateRoute, error) {
 	log.Println("CreateRouteUdpRtp ", deviceId)
 	if errs := validator.Validate(rBody); errs != nil {
 		// values not valid, deal with errors here
@@ -165,7 +174,7 @@ func (o *Haivision) CreateRouteUdpRtp(deviceId string, rBody *route.RouteModel[u
 }
 
 // Start or Stop a route
-func (o *Haivision) StartOrStopRoute(deviceId string, routeId string, command string) (*route.ResponseStartOrRoute, error) {
+func (o *haivisionSdk) StartOrStopRoute(deviceId string, routeId string, command string) (*route.ResponseStartOrRoute, error) {
 	log.Println("StartOrStopRoute ", deviceId, routeId, command)
 	if command != route.START_ROUTE && command != route.STOP_ROUTE {
 		return nil, errors.New("command must be start-route or stop-route")

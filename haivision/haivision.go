@@ -16,7 +16,7 @@ import (
 	udprtp "github.com/Allan-Nava/Haivision-go-sdk/haivision/udp_rtp"
 )
 
-type Haivision struct {
+type haivisionSdk struct {
 	Url        string
 	restClient *resty.Client
 	DeviceID   string
@@ -57,7 +57,7 @@ type IHaivisionClient interface {
 	//
 }
 
-func (o *Haivision) HealthCheck() error {
+func (o *haivisionSdk) HealthCheck() error {
 	_, err := o.restyGet(o.Url, nil)
 	if err != nil {
 		return nil
@@ -67,13 +67,13 @@ func (o *Haivision) HealthCheck() error {
 
 //
 
-func (o *Haivision) IsDebug() bool {
+func (o *haivisionSdk) IsDebug() bool {
 	return o.debug
 }
 
 // Resty Methods
 
-func (o *Haivision) restyPost(url string, body interface{}) (*resty.Response, error) {
+func (o *haivisionSdk) restyPost(url string, body interface{}) (*resty.Response, error) {
 	resp, err := o.restClient.R().
 		SetHeader("Accept", "application/json").
 		SetBody(body).
@@ -91,7 +91,7 @@ func (o *Haivision) restyPost(url string, body interface{}) (*resty.Response, er
 }
 
 // get request
-func (o *Haivision) restyGet(url string, queryParams map[string]string) (*resty.Response, error) {
+func (o *haivisionSdk) restyGet(url string, queryParams map[string]string) (*resty.Response, error) {
 	resp, err := o.restClient.R().
 		SetQueryParams(queryParams).
 		Get(url)

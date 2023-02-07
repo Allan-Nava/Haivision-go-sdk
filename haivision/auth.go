@@ -30,7 +30,7 @@ Response
 	    }
 	}
 */
-func (o *Haivision) InitSession(username string, password string) (*session.BaseResponseInitSession, error) {
+func (o *haivisionSdk) InitSession(username string, password string) (*session.BaseResponseInitSession, error) {
 	requestBody := &session.RequestInitSession{
 		Username: username,
 		Password: password,
@@ -78,7 +78,7 @@ Response
 
 ]
 */
-func (o *Haivision) GetDeviceInfo() (*[]device.ResponseDeviceInfo, error) {
+func (o *haivisionSdk) GetDeviceInfo() (*[]device.ResponseDeviceInfo, error) {
 	resp, err := o.restyGet(DEVICE_INFO, nil)
 	if err != nil {
 		return nil, err
@@ -93,3 +93,15 @@ func (o *Haivision) GetDeviceInfo() (*[]device.ResponseDeviceInfo, error) {
 }
 
 //
+
+func (o *haivisionSdk) GetSessionInfo() (*session.ResponseSessionInfo, error) {
+	resp, err := o.restyGet(SESSION, nil)
+	if err != nil {
+		return nil, err
+	}
+	var obj session.ResponseSessionInfo
+	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
+		return nil, err
+	}
+	return &obj, nil
+}
