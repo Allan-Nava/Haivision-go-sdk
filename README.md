@@ -28,7 +28,7 @@ The SDK also provide more functionality such as stop stream, getting stream stat
 
 
 ### Support
-If you have any issues or need assistance using the Haivision Go SDK, please contact the developer at allan.nava@email.com or visit the project's issue tracker at https://github.com/Allan-Nava/Haivision-go-sdk/issues
+If you have any issues or need assistance using the Haivision Go SDK, please contact the developer at allannava95@gmail.com or visit the project's issue tracker at https://github.com/Allan-Nava/Haivision-go-sdk/issues
 
 ### Contribution
 We welcome contributions to the Haivision Go SDK. If you would like to contribute, please fork the repository, make your changes, and submit a pull request. When submitting a pull request, please make sure to follow the project's coding style and include tests for any new functionality.
