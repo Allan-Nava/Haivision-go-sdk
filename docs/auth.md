@@ -47,7 +47,7 @@ Response
 }
 ```
 
-### Get Session Information
+### Get Session Information
 
 Get existing session information.
 
