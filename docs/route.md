@@ -97,7 +97,7 @@ Response
 }
 ```
 
-### Update a Route
+### Update a Route
 
 Use this command to update an individual route.
 
