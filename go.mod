@@ -8,6 +8,6 @@ require (
 )
 
 require (
-	github.com/Paxx-RnD/go-helper v1.0.5 // indirect
+	github.com/Paxx-RnD/go-helper v1.0.17 // indirect
 	golang.org/x/net v0.0.0-20211029224645-99673261e6eb // indirect
 )
