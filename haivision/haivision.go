@@ -92,11 +92,6 @@ func (o *haivisionSdk) restyPost(url string, body interface{}) (*resty.Response,
 	if err != nil {
 		return nil, err
 	}
-	if !strings.Contains(resp.Status(), "200") {
-		err = fmt.Errorf("%v", resp)
-		o.debugPrint(err)
-		return nil, err
-	}
 	return resp, nil
 }
 
@@ -107,11 +102,6 @@ func (o *haivisionSdk) restyGet(url string, queryParams map[string]string) (*res
 		Get(url)
 	//
 	if err != nil {
-		return nil, err
-	}
-	if !strings.Contains(resp.Status(), "200") {
-		err = fmt.Errorf("%v", resp)
-		o.debugPrint(err)
 		return nil, err
 	}
 	return resp, nil
