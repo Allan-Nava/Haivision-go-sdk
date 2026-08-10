@@ -100,11 +100,16 @@ def render(items, baseline):
     L.append("")
 
     # --- prossima release (il pezzo "dinamico") ---
-    nxt = next((ms for ms in chain if _counts(ms["items"])[0] > 0), None)
+    # solo fra le milestone PENDENTI: quelle <= baseline sono già taggate
+    pending = B.pending_milestones(chain)
+    nxt = next((ms for ms in pending if _counts(ms["items"])[0] > 0), None)
+    if nxt is None:
+        # nessuna pendente con item open: la prima pendente è pronta da rilasciare
+        nxt = pending[0] if pending else None
     L.append("## Prossima release")
     L.append("")
     if nxt is None:
-        L.append("Nessuna milestone con item open: **il backlog pianificato è chiuso**. "
+        L.append("Nessuna milestone pendente: **il backlog pianificato è tutto rilasciato**. "
                  "La prossima release va aperta aggiungendo item con una nuova "
                  "`- **milestone**: vX.Y.Z — Titolo` in [`backlog.md`](backlog.md).")
         L.append("")
@@ -114,13 +119,20 @@ def render(items, baseline):
         # `actual` = bump che la versione rappresenta davvero; `required` = minimo imposto dagli
         # item. actual > required è legittimo (si può rilasciare una minor di soli patch);
         # actual < required è l'errore che blocca il linter.
-        L.append(f"**{nxt['title']}** — {n_open} item da chiudere ({n_done} già fatti). "
-                 f"`{nxt['actual'] or 'incremento NON valido'}` bump rispetto a "
-                 f"**{B.fmt_version(nxt['prev'])}** (minimo imposto dagli item: `{nxt['required']}`).")
+        if n_open == 0:
+            L.append(f"**{nxt['title']}** — ✅ **pronta**: 0 item open ({n_done} chiusi). "
+                     f"Rilasciala con `make release`.")
+        else:
+            L.append(f"**{nxt['title']}** — {n_open} item da chiudere ({n_done} già fatti). "
+                     f"`{nxt['actual'] or 'incremento NON valido'}` bump rispetto a "
+                     f"**{B.fmt_version(nxt['prev'])}** (minimo imposto dagli item: "
+                     f"`{nxt['required']}`).")
         L.append("")
         L.append("```")
         L.append(f"  {B.fmt_version(baseline)} (rilasciata)")
         for ms in chain:
+            if ms["released"]:
+                continue
             o, d = _counts(ms["items"])
             tot = d + o
             # barra a larghezza fissa: le milestone restano incolonnate anche con conteggi diversi
@@ -147,10 +159,15 @@ def render(items, baseline):
         n_open, n_done = _counts(its)
         L.append(f"## {ms['title']}")
         L.append("")
-        actual = ms["actual"] or "⚠️ incremento NON valido"
-        state = "✅ rilasciabile" if n_open == 0 else f"🟢 {n_open} open"
-        L.append(f"_{actual} bump da {B.fmt_version(ms['prev'])} · impatto richiesto dagli item: "
-                 f"**{ms['required']}** · {state} · {n_done} done_")
+        if ms["released"]:
+            L.append(f"_🏷️ **rilasciata** (tag {B.fmt_version(ms['version'])}) · "
+                     f"impatto: **{ms['required']}** · {n_done} item"
+                     + (f" · ⚠️ {n_open} riaperti" if n_open else "") + "_")
+        else:
+            actual = ms["actual"] or "⚠️ incremento NON valido"
+            state = "✅ pronta al rilascio" if n_open == 0 else f"🟢 {n_open} open"
+            L.append(f"_{actual} bump da {B.fmt_version(ms['prev'])} · impatto richiesto dagli "
+                     f"item: **{ms['required']}** · {state} · {n_done} done_")
         L.append("")
         L += _item_table(its)
         L.append("")

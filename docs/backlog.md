@@ -26,8 +26,13 @@ nelle issue o nei doc: si aprono qui. Due script stdlib-only lo leggono:
                                                               │
                                      --release-notes vX.Y.Z ──┴──▶ sezione CHANGELOG.md
 
-  La milestone è DINAMICA: "prossima release" = milestone di versione più bassa
-  con almeno un item open. Chiudi gli item → avanza da sola. Nessuna lista di
+  make release ──▶ new-release.py ──▶ versione = 1ª milestone pendente con 0 item open
+                                  ──▶ roadmap + tabella CHANGELOG (baseline = versione in uscita)
+                                  ──▶ gate (gofmt/vet/build/test/lint/roadmap-check)
+                                  ──▶ commit + tag annotato        (MAI push)
+
+  La milestone è DINAMICA: "prossima release" = milestone pendente di versione più
+  bassa con almeno un item open. Chiudi gli item → avanza da sola. Nessuna lista di
   versioni mantenuta a mano.
 ```
 
@@ -61,10 +66,14 @@ un `major` dentro una minor è un errore di CI, non una svista che si scopre dop
 
 ## Chiudere un item
 
-Metti `status: done` (preferito: resta la traccia del perché) oppure rimuovilo. Quando **tutti** gli item di
-una milestone sono `done`, il linter stampa `milestone PRONTA, taggare vX.Y.Z` e la roadmap la marca
-`✅ rilasciabile`: da lì si genera la sezione di changelog con
-`make release-notes V=vX.Y.Z` e si tagga (il push lo fa sempre l'utente).
+Metti `status: done` (preferito: resta la traccia del perché — se la premessa dell'item era sbagliata,
+scrivilo, come in `deps-x-net-vuln`) oppure rimuovilo. Quando **tutti** gli item di una milestone sono
+`done`, il linter stampa `milestone PRONTA` e la roadmap la marca `✅ pronta al rilascio`: da lì
+**`make release`** fa tutto il resto — versione, CHANGELOG, gate, commit e tag annotato. Il push lo fa
+sempre l'utente. `make release-dry` mostra cosa farebbe senza scrivere niente.
+
+Lo script rifiuta di rilasciare una milestone con item open, di saltare una versione della catena, di
+taggare da un branch diverso da `main` e di committare file tipo chiave/dump/env o più grandi di 1 MB.
 
 > 🔍 **Prima di aprire un item nuovo, cerca il doppione per artefatto, non per parole.** Due item scritti
 > in momenti diversi sullo stesso problema usano parole diverse. Cerca ciò che l'intervento *toccherebbe*:
@@ -296,6 +305,34 @@ anche che la sessione sia ancora valida).
 
 `route.go` e `stats.go` fanno `log.Println` **incondizionato**, ignorando il flag `debug`: una libreria non
 deve inquinare lo stdout del chiamante. Sostituire con `o.debugPrint`.
+
+### `release-tooling-dynamic` — release derivata dal backlog: versione, CHANGELOG, gate, commit e tag
+
+- **status**: done
+- **priority**: medium
+- **impact**: patch
+- **labels**: tooling, release, dx
+- **milestone**: v1.1.0 — Correttezza client, sicurezza, wire fix
+- **ref**: [roadmap](roadmap.md)
+
+✅ **FATTO in v1.1.0** — `scripts/new-release.py` (+ `make release` / `make release-dry`). La versione **non
+si passa a mano**: è la prima milestone pendente con 0 item open. Lo script fa lint del backlog, sceglie la
+versione, controlla git (branch, tag libero, nessun file tipo chiave/dump/env, nessun file > 1 MB),
+rigenera `docs/roadmap.md` e la tabella delle milestone in `CHANGELOG.md`, esegue i gate
+(gofmt/vet/build/test/backlog-lint/roadmap-check), committa e crea il tag annotato. **Mai push.**
+
+Se la sezione di CHANGELOG della versione manca, la scrive dallo scheletro generato dal backlog e **si
+ferma** (exit 3): i titoli degli item sono formulati come problemi, la prosa va rifinita in voce da
+changelog prima di taggare.
+
+Due difetti trovati durante la messa in opera, entrambi corretti:
+
+- le milestone con versione <= baseline vanno trattate come **storia**, non come pianificazione: subito
+  dopo il tag di `vX.Y.Z` quella milestone diventava "non un incremento valido rispetto a sé stessa" e il
+  gate `backlog-lint` sarebbe andato rosso a ogni release (`released` in `milestone_chain`);
+- roadmap e tabella vanno generate con **baseline = la versione in uscita**, non col max tag attuale: il tag
+  non esiste ancora ma il commit lo porterà, e generandole con la baseline vecchia il gate `roadmap-check`
+  diventava rosso sul commit di release stesso.
 
 ### `httptest-client-coverage` — copertura del package `haivision`: 0%
 

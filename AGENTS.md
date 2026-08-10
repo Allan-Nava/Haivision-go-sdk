@@ -7,9 +7,10 @@ Questo file definisce le regole operative per gli agent (Copilot, Claude, altri 
 ## Regole di lavoro (SEMPRE)
 
 - **Todo -> `docs/backlog.md`** (sorgente unica, item con `id` stabile, mai TODO sparsi nel codice o nei doc). Ogni item dichiara `impact` (`patch`/`minor`/`major`) e la `milestone` = **versione target** `vX.Y.Z`. Da lì si generano `docs/roadmap.md` (milestone dinamica) e le sezioni di `CHANGELOG.md`. Convenzioni e tabella di assegnazione di `impact`: in testa a `docs/backlog.md`.
-- **Ogni release = tag `vX.Y.Z`** + sezione in `CHANGELOG.md` (Keep a Changelog, in italiano), generata con `make release-notes V=vX.Y.Z` e rifinita a mano. La versione **non si sceglie**: e la milestone del backlog, e `make backlog-lint` verifica che il bump regga l'`impact` massimo dei suoi item. Si tagga quando la milestone ha 0 item open (il linter lo dice: `milestone PRONTA`). ATTENZIONE: il push del tag fa scattare `.github/workflows/tag-autorelease.yml` che crea una **release pubblica su GitHub**: il tag lo pusha sempre l'utente, mai l'agent.
-- **MAI `git push`**: lo fa sempre l'utente. MAI `Co-Authored-By` nei commit.
-- **Chiudendo un item del backlog**: `status: done` (preferito, resta la traccia) + `make roadmap` e committa la roadmap rigenerata, altrimenti il gate `roadmap-check` in CI fallisce. `make check` esegue tutti i gate in un colpo.
+- **Le release si tagliano con `make release`**, non a mano. La versione **non si sceglie**: `scripts/new-release.py` prende la prima milestone pendente con 0 item open, rigenera roadmap e tabella del CHANGELOG, esegue i gate, committa e crea il tag annotato. `make release-dry` mostra cosa farebbe senza scrivere. Se la sezione di CHANGELOG manca, la scrive dallo scheletro del backlog e **si ferma** (exit 3): i titoli degli item sono formulati come problemi, la prosa va rifinita in voce da changelog (cosa cambia per chi aggiorna, cosa e breaking), poi si rilancia lo stesso comando.
+- **MAI `git push`**: lo fa sempre l'utente, e per il tag e tassativo: fa scattare `.github/workflows/tag-autorelease.yml` che crea una **release pubblica su GitHub**. MAI `Co-Authored-By` nei commit.
+- **Chiudendo un item del backlog**: `status: done` (preferito, resta la traccia del perche: se la premessa era sbagliata, scrivilo) + `make roadmap` e committa la roadmap rigenerata, altrimenti il gate `roadmap-check` in CI fallisce. `make check` esegue tutti i gate in un colpo.
+- **Ogni modifica sostanziale e un item del backlog**, anche il tooling: il backlog e la sorgente unica, quindi un commit che contiene lavoro non tracciato e un buco. Aggiungi l'item (anche gia `done`) prima di rilasciare.
 - **E una libreria pubblica**: ogni modifica alla firma di `IHaivisionClient` o ai campi esportati dei modelli e **breaking** per i consumer (`compress-bot`, servizi HiWay). Va segnalata nel CHANGELOG e nel messaggio di commit, e giustifica un bump `minor` (o `major` su `v1`).
 - **Ogni nuovo endpoint porta con se**: costante in `haivision/constants.go` + helper `fmt.Sprintf` nello stesso file, modelli request/response nel sottopacchetto di protocollo, metodo sul `haivisionSdk`, **voce in `IHaivisionClient`**, test in `test/`, riga nel README/`docs/`. Un metodo che non compare nell'interfaccia e invisibile ai consumer.
 - **Documentare SEMPRE** audit, debug e verifiche sul comportamento reale del gateway: doc `.md` in `docs/` (nav Jekyll in `docs/_config.yml`), senza chiederlo. Riportare la **richiesta e la risposta reali** (redatte), non il solo riassunto della doc Haivision.
@@ -31,16 +32,22 @@ Questo file definisce le regole operative per gli agent (Copilot, Claude, altri 
 
 ```
   docs/backlog.md ──▶ scripts/lib/backlog.py ──▶ backlog-lint.py    (gate CI: struttura + semver)
-   ### `id` — Titolo    (regole condivise)   ──▶ generate-roadmap.py
-   - impact / milestone                            │
-                                                   ├─▶ docs/roadmap.md  (generata, committata)
-   git tag vX.Y.Z ──baseline──────────────────────▶│    "Prossima release: vN"
-   (max tag esistente)                             └─▶ --release-notes vX.Y.Z ─▶ CHANGELOG.md
+   ### `id` — Titolo    (regole condivise)   ──▶ generate-roadmap.py ─▶ docs/roadmap.md
+   - impact / milestone         │                                        (generata, committata)
+                                │
+   git tag vX.Y.Z ──baseline────┘            new-release.py  ──▶ versione = 1a milestone pendente
+   (max tag esistente)                       (make release)        con 0 item open
+                                                   │                     │
+                                                   │                     ├─▶ CHANGELOG.md
+                                                   │                     ├─▶ gate
+                                                   └─────────────────────┴─▶ commit + tag (NO push)
 ```
 
-- **La milestone e dinamica**: "prossima release" = milestone di versione piu bassa con almeno un item `open`. Non esiste una lista di versioni mantenuta a mano: si chiudono item e avanza da sola.
+- **La milestone e dinamica**: "prossima release" = milestone pendente di versione piu bassa con almeno un item `open`. Non esiste una lista di versioni mantenuta a mano: si chiudono item e avanza da sola, roadmap e tabella del CHANGELOG comprese.
 - **`impact` governa la versione**, `priority` governa l'ordine di lavoro. Sono ortogonali: un item `low`/`major` esiste (es. `exported-naming-typos`).
-- **Il linter blocca un `major` pianificato dentro una minor** e verifica che la catena `baseline -> v1.1.0 -> v1.2.0 -> v2.0.0` sia composta di bump semver validi (componenti inferiori azzerate). Pianificare male una versione e un errore di CI, non una scoperta post-tag.
+- **Il linter blocca un `major` pianificato dentro una minor** e verifica che la catena `baseline -> v1.2.0 -> v2.0.0` sia composta di bump semver validi (componenti inferiori azzerate). Pianificare male una versione e un errore di CI, non una scoperta post-tag.
+- **Le milestone con versione <= baseline sono storia, non pianificazione**: `milestone_chain` le marca `released` e il linter non ne valida il bump. Senza questo, subito dopo il tag di `vX.Y.Z` quella milestone risulterebbe "non un incremento valido rispetto a se stessa" e il gate andrebbe rosso a ogni release. Per la stessa ragione `new-release.py` genera roadmap e tabella con **baseline = la versione in uscita** (il tag non esiste ancora, ma il commit lo portera).
+- **Non si salta una release**: `new-release.py` rifiuta di taggare `v2.0.0` se `v1.2.0` ha ancora item open.
 - **Accorpare i breaking**: ogni major costa un adeguamento a tutti i consumer. Se un intervento e `major`, va in `v2.0.0` insieme agli altri, non in una major propria.
 - `make roadmap` dopo ogni modifica al backlog, e committa: `roadmap-check` confronta byte per byte.
 
@@ -65,7 +72,7 @@ Questo file definisce le regole operative per gli agent (Copilot, Claude, altri 
 ## Puntatori
 
 - **Backlog operativo**: `docs/backlog.md` (sorgente unica) - **Roadmap per milestone di versione**: `docs/roadmap.md` (generata) - `CHANGELOG.md`
-- **Tooling**: `scripts/lib/backlog.py` (parser + regole, fonte unica), `scripts/backlog-lint.py`, `scripts/generate-roadmap.py` (`--check`, `--release-notes vX.Y.Z`). Target: `make check`, `make backlog-lint`, `make roadmap`, `make release-notes V=vX.Y.Z`. Solo stdlib Python 3.
+- **Tooling**: `scripts/lib/backlog.py` (parser + regole semver, fonte unica), `scripts/backlog-lint.py`, `scripts/generate-roadmap.py` (`--check`, `--release-notes`, `--baseline`), `scripts/new-release.py`. Target: `make check`, `make backlog-lint`, `make roadmap`, `make release-dry`, `make release`. Solo stdlib Python 3.
 - Codice client: `haivision/haivision.go` (struct + interfaccia `IHaivisionClient` + helper resty), `haivision/builder.go` (costruttore/login), `haivision/auth.go`, `haivision/route.go`, `haivision/stats.go`, `haivision/constants.go` (tutti i path API), `haivision/header_configurator.go` (header custom + Basic auth).
 - Modelli per protocollo: `haivision/{srt,rtmp,rtsp,udp_rtp,hls}/`; comuni: `haivision/{session,device,route,stats}/`.
 - Test: `test/` (package `test`, esterno alla libreria): oggi 2 test triviali, copertura di `haivision/` **zero**.

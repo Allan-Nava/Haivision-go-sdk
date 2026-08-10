@@ -4,21 +4,24 @@ Tutte le modifiche rilevanti a questo progetto sono documentate qui.
 Il formato segue [Keep a Changelog](https://keepachangelog.com/it/1.1.0/) e il progetto aderisce al
 [Semantic Versioning](https://semver.org/lang/it/).
 
-> 🔗 Le sezioni di questo file **nascono dal backlog**: `make release-notes V=vX.Y.Z` genera la sezione
-> di una milestone (item raggruppati per `impact`) da [`docs/backlog.md`](docs/backlog.md). Il piano
-> delle versioni è in [`docs/roadmap.md`](docs/roadmap.md), generata dallo stesso backlog.
+> 🔗 Le release **nascono dal backlog**: `make release` deriva la versione dalla prima milestone di
+> [`docs/backlog.md`](docs/backlog.md) con 0 item open, scrive questa sezione, esegue i gate, committa e
+> tagga (mai push). Il piano delle versioni è in [`docs/roadmap.md`](docs/roadmap.md), generata dallo
+> stesso backlog.
 >
 > Cosa significa `impact` per chi usa l'SDK: `patch` → nessun cambio di API, `minor` → aggiunte o cambi
 > di comportamento retrocompatibili in compilazione, `major` → **il codice del consumer va adeguato**.
 
 ## [Unreleased]
 
-Il lavoro pianificato è in [`docs/roadmap.md`](docs/roadmap.md):
+Il lavoro pianificato è in [`docs/roadmap.md`](docs/roadmap.md). Tabella aggiornata da `make release`:
 
-| Versione | Contenuto | Bump |
-|---|---|---|
-| `v1.2.0` | Qualità, CI, documentazione — copertura test, gate CI, README corretto, cleanup | minor |
-| `v2.0.0` | Contratto API allineato e superficie pulita — **breaking**: `CreateRoute*`, `ResponseStartOrRoute`, statistiche `float64`, `context.Context` | major |
+<!-- MILESTONE-TABLE:START -->
+| Versione | Contenuto | Bump | Stato |
+|---|---|---|---|
+| `v1.2.0` | Qualità, CI, documentazione | minor | 9 item open |
+| `v2.0.0` | Contratto API allineato e superficie pulita | major | 10 item open |
+<!-- MILESTONE-TABLE:END -->
 
 ## [1.1.0] — 2026-08-10
 
@@ -54,8 +57,13 @@ prima erano silenziosi — vedi «Changed».
 - Suite di test di contratto sul wire format (payload letterali della doc Haivision) e test dei percorsi
   HTTP del client su `httptest.Server`: 32 test, tutti offline. Copertura di `./haivision/...`: 37,9%
   (era 0%).
+- **Release derivata dal backlog** (`make release`, `scripts/new-release.py`): la versione non si passa a
+  mano, è la prima milestone di [`docs/backlog.md`](docs/backlog.md) con 0 item open. Lo script rigenera
+  roadmap e tabella delle milestone, esegue i gate, committa e crea il tag annotato — mai `git push`.
+  Rifiuta di rilasciare una milestone incompleta, di saltare una versione, di taggare fuori da `main` e di
+  committare file tipo chiave/dump/env.
 - Target `make`: `help`, `fmt`, `fmt-check`, `vet`, `cover`, `check`, `backlog-lint`, `roadmap`,
-  `roadmap-check`, `release-notes`.
+  `roadmap-check`, `release-notes`, `release-dry`, `release`.
 
 ### Fixed
 

@@ -56,8 +56,14 @@ def main():
           f"baseline rilasciata {B.fmt_version(baseline)}")
     for ms in chain:
         n_o = sum(1 for it in ms["items"] if it["status"].lower() != "done")
+        v = B.fmt_version(ms["version"])
+        if ms["released"]:
+            # già taggata: è storia, il bump non si valida (vedi milestone_chain)
+            print(f"   {v}: 🏷️  rilasciata · impatto {ms['required']} · "
+                  f"{len(ms['items'])} item" + (f" · ⚠️ {n_o} riaperti" if n_o else ""))
+            continue
         actual = ms["actual"] or "NON VALIDO"
-        print(f"   {B.fmt_version(ms['version'])}: {actual} bump da {B.fmt_version(ms['prev'])} "
+        print(f"   {v}: {actual} bump da {B.fmt_version(ms['prev'])} "
               f"· richiesto {ms['required']} · {n_o}/{len(ms['items'])} open")
 
     for w in warnings:

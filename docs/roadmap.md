@@ -11,15 +11,14 @@ permalink: /roadmap
 <!-- GENERATO da scripts/generate-roadmap.py — NON editare a mano. -->
 > ⚙️ Pagina **generata** da [`scripts/generate-roadmap.py`](https://github.com/Allan-Nava/Haivision-go-sdk/blob/main/scripts/generate-roadmap.py) leggendo [`docs/backlog.md`](backlog.md) (unica sorgente). Rigenerala con `make roadmap`; `make roadmap-check` è il gate in CI.
 
-_Baseline rilasciata: **v1.0.0** · 3 milestone · 32 item pianificati (19 open · 13 done)._
+_Baseline rilasciata: **v1.1.0** · 3 milestone · 33 item pianificati (19 open · 14 done)._
 
 ## Prossima release
 
 **v1.2.0 — Qualità, CI, documentazione** — 9 item da chiudere (0 già fatti). `minor` bump rispetto a **v1.1.0** (minimo imposto dagli item: `patch`).
 
 ```
-  v1.0.0 (rilasciata)
-     │   v1.1.0    [████████████████] 13/13  minor
+  v1.1.0 (rilasciata)
      │   v1.2.0    [░░░░░░░░░░░░░░░░] 0/9   patch  ◀── PROSSIMA
      │   v2.0.0    [░░░░░░░░░░░░░░░░] 0/10  major
      ▼
@@ -34,7 +33,7 @@ Blocker `high` di v1.2.0:
 
 ## v1.1.0 — Correttezza client, sicurezza, wire fix
 
-_minor bump da v1.0.0 · impatto richiesto dagli item: **minor** · ✅ rilasciabile · 13 done_
+_🏷️ **rilasciata** (tag v1.1.0) · impatto: **minor** · 14 item_
 
 | id | Titolo | Impatto | Priorità | Status |
 |----|--------|---------|----------|--------|
@@ -50,6 +49,7 @@ _minor bump da v1.0.0 · impatto richiesto dagli item: **minor** · ✅ rilascia
 | `header-configurator-order` | header custom applicati dopo il login: rotto dietro proxy autenticato | 🔧 patch | medium | ✅ done |
 | `healthcheck-always-nil` | `HealthCheck()` non può fallire | 🔧 patch | medium | ✅ done |
 | `makefile-build-and-gofmt` | `make build` è rotto e 5 file non passano gofmt | 🔧 patch | medium | ✅ done |
+| `release-tooling-dynamic` | release derivata dal backlog: versione, CHANGELOG, gate, commit e tag | 🔧 patch | medium | ✅ done |
 | `unconditional-log-println` | la libreria scrive sul logger globale del consumer a ogni chiamata | 🔧 patch | low | ✅ done |
 
 ## v1.2.0 — Qualità, CI, documentazione

@@ -162,9 +162,15 @@ def released_baseline(default=(0, 0, 0)):
 def milestone_chain(items, baseline):
     """Milestone ordinate per versione, con il bump richiesto e quello effettivo.
 
-    Ritorna una lista di dict: version, label, title, items, required, actual, prev.
-    `actual` è calcolato rispetto alla milestone precedente della catena (o alla baseline
-    per la prima): è così che una v1.1.0 e una v1.2.0 restano entrambe minor bump legittimi.
+    Ritorna una lista di dict: version, label, title, items, required, actual, prev, released.
+
+    Le milestone con versione <= baseline sono **già rilasciate**: sono storia, non pianificazione.
+    Per loro `released=True` e `actual=None`, e il linter non valida il bump — altrimenti subito
+    dopo il tag di vX.Y.Z quella milestone diventerebbe "non un incremento valido rispetto a
+    sé stessa" e il gate CI fallirebbe a ogni release.
+
+    Per le milestone pendenti `actual` è calcolato rispetto alla precedente della catena (o alla
+    baseline per la prima): è così che una v1.1.0 e una v1.2.0 restano entrambe minor legittimi.
     """
     planned = {}
     for it in items:
@@ -181,11 +187,21 @@ def milestone_chain(items, baseline):
 
     prev = baseline
     for ms in parsed:
-        ms["prev"] = prev
+        ms["released"] = ms["version"] <= baseline
         ms["required"] = required_bump(ms["items"])
+        if ms["released"]:
+            ms["prev"] = ms["version"]
+            ms["actual"] = None
+            continue
+        ms["prev"] = prev
         ms["actual"] = bump_kind(prev, ms["version"])
         prev = ms["version"]
     return parsed
+
+
+def pending_milestones(chain):
+    """Le milestone non ancora rilasciate, in ordine di versione."""
+    return [ms for ms in chain if not ms["released"]]
 
 
 def _norm_milestone(title):
@@ -261,9 +277,10 @@ def lint(items, baseline=None):
                           + " · ".join(f"«{t}»" for t in sorted(titles))
                           + " → una versione = un titolo")
 
-    # 9) VERSIONAMENTO: la catena delle milestone deve reggere il semver
+    # 9) VERSIONAMENTO: la catena delle milestone pendenti deve reggere il semver.
+    #    Le milestone già rilasciate (versione <= baseline) sono storia e non si validano.
     chain = milestone_chain(items, baseline)
-    for ms in chain:
+    for ms in pending_milestones(chain):
         v, prev = fmt_version(ms["version"]), fmt_version(ms["prev"])
         if ms["actual"] is None:
             errors.append(f"{v}: non è un incremento semver valido rispetto a {prev} "
@@ -280,9 +297,16 @@ def lint(items, baseline=None):
     # 10) segnali dinamici (non bloccanti)
     for ms in chain:
         n_open = sum(1 for it in ms["items"] if it["status"].lower() != "done")
+        if ms["released"]:
+            # un item riaperto su una versione già taggata non rientra da solo in quella release
+            if n_open:
+                warnings.append(f"{ms['title']}: già rilasciata ma ha {n_open} item open → "
+                                f"spostali su una milestone pendente, non rientrano in "
+                                f"{fmt_version(ms['version'])}")
+            continue
         if n_open == 0:
-            warnings.append(f"{ms['title']}: 0 item open → milestone PRONTA, taggare "
-                            f"{fmt_version(ms['version'])} (il push del tag lo fa l'utente)")
+            warnings.append(f"{ms['title']}: 0 item open → milestone PRONTA, rilasciala con "
+                            f"`make release` (il push lo fa l'utente)")
     unplanned = [it for it in items if not it["milestone"] and it["status"].lower() != "done"]
     if unplanned:
         warnings.append(f"{len(unplanned)} item open senza milestone (non entrano in nessuna "
