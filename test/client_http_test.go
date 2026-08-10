@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -93,14 +94,14 @@ func (g *gatewayStub) sessionHeader(key string) string {
 }
 
 // happy path: sessione + device, DeviceID preso dal primo device
-func TestBuildHaivisionSuccess(t *testing.T) {
+func TestDialSuccess(t *testing.T) {
 	g := newGatewayStub(t)
 	g.on(http.MethodPost, "/api/session", http.StatusOK, sessionOKBody)
 	g.on(http.MethodGet, "/api/devices", http.StatusOK, devicesOKBody)
 
-	c, err := haivision.BuildHaivision(g.srv.URL, false, "haiadmin", "pw", nil, nil)
+	c, err := haivision.Dial(context.Background(), haivision.Config{URL: g.srv.URL, Username: "haiadmin", Password: "pw", Debug: false})
 	if err != nil {
-		t.Fatalf("BuildHaivision: %v", err)
+		t.Fatalf("Dial: %v", err)
 	}
 	if got := c.GetDeviceID(); got != "dev-1" {
 		t.Errorf("GetDeviceID() = %q, atteso dev-1", got)
@@ -112,12 +113,12 @@ func TestBuildHaivisionSuccess(t *testing.T) {
 
 // Credenziali sbagliate: il 401 deve diventare un errore, non un client con sessionID vuoto.
 // Prima della v1.1.0 questo caso ritornava err == nil.
-func TestBuildHaivisionWrongCredentialsReturnsError(t *testing.T) {
+func TestDialWrongCredentialsReturnsError(t *testing.T) {
 	g := newGatewayStub(t)
 	g.on(http.MethodPost, "/api/session", http.StatusUnauthorized,
 		`{"error":"Invalid username or password"}`)
 
-	c, err := haivision.BuildHaivision(g.srv.URL, false, "haiadmin", "sbagliata", nil, nil)
+	c, err := haivision.Dial(context.Background(), haivision.Config{URL: g.srv.URL, Username: "haiadmin", Password: "sbagliata", Debug: false})
 	if err == nil {
 		t.Fatalf("atteso errore su 401, ottenuto client valido: %#v", c)
 	}
@@ -138,23 +139,23 @@ func TestBuildHaivisionWrongCredentialsReturnsError(t *testing.T) {
 }
 
 // Il 500 su /api/devices non deve essere silenzioso.
-func TestBuildHaivisionDeviceErrorReturnsError(t *testing.T) {
+func TestDialDeviceErrorReturnsError(t *testing.T) {
 	g := newGatewayStub(t)
 	g.on(http.MethodPost, "/api/session", http.StatusOK, sessionOKBody)
 	g.on(http.MethodGet, "/api/devices", http.StatusInternalServerError, `{"error":"boom"}`)
 
-	if _, err := haivision.BuildHaivision(g.srv.URL, false, "u", "p", nil, nil); err == nil {
+	if _, err := haivision.Dial(context.Background(), haivision.Config{URL: g.srv.URL, Username: "u", Password: "p", Debug: false}); err == nil {
 		t.Fatal("atteso errore su 500 da /api/devices")
 	}
 }
 
 // Lista device vuota: errore esplicito, non panic da index out of range.
-func TestBuildHaivisionEmptyDeviceListReturnsError(t *testing.T) {
+func TestDialEmptyDeviceListReturnsError(t *testing.T) {
 	g := newGatewayStub(t)
 	g.on(http.MethodPost, "/api/session", http.StatusOK, sessionOKBody)
 	g.on(http.MethodGet, "/api/devices", http.StatusOK, `[]`)
 
-	_, err := haivision.BuildHaivision(g.srv.URL, false, "u", "p", nil, nil)
+	_, err := haivision.Dial(context.Background(), haivision.Config{URL: g.srv.URL, Username: "u", Password: "p", Debug: false})
 	if err == nil {
 		t.Fatal("attesa ErrNoDevices su lista device vuota")
 	}
@@ -165,7 +166,7 @@ func TestBuildHaivisionEmptyDeviceListReturnsError(t *testing.T) {
 
 // Gli header custom devono partire GIÀ sulla POST /api/session: è il caso del gateway dietro
 // un reverse proxy con Basic auth. Prima della v1.1.0 venivano applicati dopo il login.
-func TestBuildHaivisionSendsCustomHeadersOnLogin(t *testing.T) {
+func TestDialSendsCustomHeadersOnLogin(t *testing.T) {
 	g := newGatewayStub(t)
 	g.on(http.MethodPost, "/api/session", http.StatusOK, sessionOKBody)
 	g.on(http.MethodGet, "/api/devices", http.StatusOK, devicesOKBody)
@@ -174,8 +175,8 @@ func TestBuildHaivisionSendsCustomHeadersOnLogin(t *testing.T) {
 	h.CreateBasicAuthHeader("proxy-user", "proxy-pass")
 	h.SetHeader("X-Tenant", "hiway")
 
-	if _, err := haivision.BuildHaivision(g.srv.URL, false, "u", "p", h, nil); err != nil {
-		t.Fatalf("BuildHaivision: %v", err)
+	if _, err := haivision.Dial(context.Background(), haivision.Config{URL: g.srv.URL, Username: "u", Password: "p", Headers: h.GetHeaders()}); err != nil {
+		t.Fatalf("Dial: %v", err)
 	}
 	if got := g.sessionHeader("Authorization"); got == "" {
 		t.Error("la POST /api/session è partita senza header Authorization: " +
@@ -208,18 +209,18 @@ func TestHealthCheck(t *testing.T) {
 			`"roles":["Administrator"],"expireAt":1536938857529,"isLicensed":true}`))
 	})
 
-	c, err := haivision.BuildHaivision(g.srv.URL, false, "u", "p", nil, nil)
+	c, err := haivision.Dial(context.Background(), haivision.Config{URL: g.srv.URL, Username: "u", Password: "p", Debug: false})
 	if err != nil {
-		t.Fatalf("BuildHaivision: %v", err)
+		t.Fatalf("Dial: %v", err)
 	}
-	if err := c.HealthCheck(); err != nil {
+	if err := c.HealthCheck(context.Background()); err != nil {
 		t.Errorf("HealthCheck() con sessione valida = %v, atteso nil", err)
 	}
 
 	mu.Lock()
 	sessionDown = true
 	mu.Unlock()
-	err = c.HealthCheck()
+	err = c.HealthCheck(context.Background())
 	if err == nil {
 		t.Fatal("HealthCheck() con sessione scaduta = nil, atteso errore")
 	}
@@ -248,11 +249,11 @@ func TestGetSrtClientStatisticsUsesClientSubPath(t *testing.T) {
 			_, _ = w.Write([]byte(`{"collectedAt":1675178018888,"clientStat":[]}`))
 		})
 
-	c, err := haivision.BuildHaivision(g.srv.URL, false, "u", "p", nil, nil)
+	c, err := haivision.Dial(context.Background(), haivision.Config{URL: g.srv.URL, Username: "u", Password: "p", Debug: false})
 	if err != nil {
-		t.Fatalf("BuildHaivision: %v", err)
+		t.Fatalf("Dial: %v", err)
 	}
-	if _, err := c.GetSrtClientStatistics("dev-1", "route-1", "dst-1", "10.0.0.9", "2000"); err != nil {
+	if _, err := c.GetSrtClientStatistics(context.Background(), "dev-1", "route-1", "dst-1", "10.0.0.9", "2000"); err != nil {
 		t.Fatalf("GetSrtClientStatistics: %v (il path /statistics/client non è stato colpito?)", err)
 	}
 	q := <-called
@@ -276,25 +277,33 @@ func TestStartOrStopRouteUsesCommandsEndpoint(t *testing.T) {
 	g.onFunc(http.MethodPost, "/api/devices/dev-1/commands", func(w http.ResponseWriter, r *http.Request) {
 		hit <- "commands"
 		w.Header().Set("Content-Type", "application/json")
-		// la risposta reale è un array: l'unmarshal fallisce (bug `startstop-response-slice`),
-		// ma questo test verifica solo QUALE endpoint viene colpito
-		_, _ = w.Write([]byte(`{}`))
+		// risposta reale: array top-level di comandi accodati
+		_, _ = w.Write([]byte(`[{"command":"start-route","parameters":{"routeID":"route-1"},` +
+			`"state":"pending","_id":"cmd-1","result":null}]`))
 	})
 	g.onFunc(http.MethodPost, "/api/devices/dev-1/updates", func(w http.ResponseWriter, r *http.Request) {
 		hit <- "updates"
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{}`))
+		_, _ = w.Write([]byte(`{"status":"ok"}`))
 	})
 
-	c, err := haivision.BuildHaivision(g.srv.URL, false, "u", "p", nil, nil)
+	c, err := haivision.Dial(context.Background(), haivision.Config{URL: g.srv.URL, Username: "u", Password: "p", Debug: false})
 	if err != nil {
-		t.Fatalf("BuildHaivision: %v", err)
+		t.Fatalf("Dial: %v", err)
 	}
-	if _, err := c.StartOrStopRoute("dev-1", "route-1", "start-route"); err != nil {
+	cmds, err := c.StartOrStopRoute(context.Background(), "dev-1", "route-1", "start-route")
+	if err != nil {
 		t.Fatalf("StartOrStopRoute: %v", err)
 	}
 	if got := <-hit; got != "commands" {
 		t.Errorf("start-route ha colpito /%s, atteso /commands", got)
+	}
+	// la risposta ora è deserializzata: nella v1.x l'unmarshal fallisce sempre
+	if len(cmds) != 1 || cmds[0].Parameters.RouteID != "route-1" {
+		t.Fatalf("comandi = %+v", cmds)
+	}
+	if !cmds.Pending() {
+		t.Error("Pending() = false con state=pending: i comandi del gateway sono asincroni")
 	}
 }
 
@@ -304,11 +313,11 @@ func TestStartOrStopRouteRejectsUnknownCommand(t *testing.T) {
 	g.on(http.MethodPost, "/api/session", http.StatusOK, sessionOKBody)
 	g.on(http.MethodGet, "/api/devices", http.StatusOK, devicesOKBody)
 
-	c, err := haivision.BuildHaivision(g.srv.URL, false, "u", "p", nil, nil)
+	c, err := haivision.Dial(context.Background(), haivision.Config{URL: g.srv.URL, Username: "u", Password: "p", Debug: false})
 	if err != nil {
-		t.Fatalf("BuildHaivision: %v", err)
+		t.Fatalf("Dial: %v", err)
 	}
-	if _, err := c.StartOrStopRoute("dev-1", "route-1", "restart-route"); err == nil {
+	if _, err := c.StartOrStopRoute(context.Background(), "dev-1", "route-1", "restart-route"); err == nil {
 		t.Error("atteso errore su comando non valido")
 	}
 }

@@ -18,8 +18,8 @@ Haivision SRT Gateway is a highly flexible and scalable broadcast solution for s
 
 ## Installation
 
-Serve **Go 1.18 o superiore** (l'SDK usa i generics). Il package importabile è `.../haivision`: la root
-del modulo non contiene file Go.
+Serve **Go 1.25 o superiore**. Il package importabile è `.../haivision`: la root del modulo non
+contiene file Go.
 
 ```bash
 go get github.com/Allan-Nava/Haivision-go-sdk
@@ -29,8 +29,8 @@ go get github.com/Allan-Nava/Haivision-go-sdk
 import "github.com/Allan-Nava/Haivision-go-sdk/haivision"
 ```
 
-Esempio d'uso completo, gestione degli errori (`APIError`, `ErrNoDevices`) e **limitazioni note della
-v1.x** sono nel [README del repository](https://github.com/Allan-Nava/Haivision-go-sdk#usage).
+Esempio d'uso completo, gestione degli errori e **guida di migrazione da v1.x a v2.0.0** sono nel
+[README del repository](https://github.com/Allan-Nava/Haivision-go-sdk#usage).
 
 Stato del progetto: [roadmap per milestone](roadmap.md) · [backlog](backlog.md) ·
 [audit tecnico](audit-2026-08-10.md).

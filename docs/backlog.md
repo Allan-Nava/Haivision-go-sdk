@@ -485,12 +485,14 @@ scegliere uno dei due e rimuovere l'altro.
 
 ### `create-route-request-model` — `CreateRoute*` invia il modello di risposta, non la richiesta
 
-- **status**: open
+- **status**: done
 - **priority**: high
 - **impact**: major
 - **labels**: api-contract, routes, breaking, audit-p0
 - **milestone**: v2.0.0 — Contratto API allineato e superficie pulita
 - **ref**: [audit §B2](audit-2026-08-10.md)
+
+✅ **FATTO in v2.0.0** — `CreateRoute[TS,TD]` è ora una **funzione generica** che costruisce il body documentato (`action`/`deviceID`/`elementType` + wrapper `fields`) dai soli campi della route: il chiamante non può più sbagliare il wrapper. Introdotto `route.RouteFields[TS,TD]` come corpo di richiesta, distinto da `ResponseRouteModel[TS,TD]` che porta i campi di stato. Verificato con `TestCreateRouteSendsDocumentedBody`, che ispeziona il body **realmente ricevuto** dallo stub e controlla che nessun campo di stato (`state`, `elapsedTime`, `summaryStatusCode`) finisca nella richiesta.
 
 Le quattro `CreateRoute*` accettano `*route.RouteModel[TS,TD]` — la forma **di risposta**, con `id`,
 `state`, `elapsedTime`, `summaryStatusCode` — e la postano così com'è: il body non contiene `action`,
@@ -503,12 +505,14 @@ Il cambio di tipo del parametro è breaking. Attenzione: appena `RequestCreateRo
 
 ### `startstop-response-slice` — `ResponseStartOrRoute` non deserializza la risposta reale
 
-- **status**: open
+- **status**: done
 - **priority**: high
 - **impact**: major
 - **labels**: api-contract, routes, breaking, audit-p0
 - **milestone**: v2.0.0 — Contratto API allineato e superficie pulita
 - **ref**: [audit §B4](audit-2026-08-10.md)
+
+✅ **FATTO in v2.0.0** — `ResponseStartOrRoute` (struct, nome incompleto) → **`route.ResponseRouteCommand`**, uno slice, con il tipo interno estratto in `RouteCommand` e `CommandParameters`. Aggiunto `Pending()`: i comandi del gateway sono asincroni e `state: pending` significa accodato, non eseguito. `Result` è `json.RawMessage` perché la doc lo mostra a `null` ma il gateway può metterci un oggetto — con `string` l'unmarshal fallirebbe nel secondo caso.
 
 L'API risponde con un **array top-level**; la struct wrappa in un campo `Response []struct{...}` senza tag
 JSON. Verificato: `json: cannot unmarshal array into Go value of type route.ResponseStartOrRoute`. Il tipo
@@ -517,12 +521,14 @@ anonima interna in un tipo con nome, così i consumer possono dichiararla.
 
 ### `stats-float64` — bitrate e rate in Mbit/s tipizzati `int`: ogni valore frazionario rompe la chiamata
 
-- **status**: open
+- **status**: done
 - **priority**: high
 - **impact**: major
 - **labels**: api-contract, stats, breaking, audit-p0
 - **milestone**: v2.0.0 — Contratto API allineato e superficie pulita
 - **ref**: [audit §B5](audit-2026-08-10.md)
+
+✅ **FATTO in v2.0.0** — **58 campi** convertiti da `int` a `float64` in `haivision/stats/`. Anche i contatori: JSON non distingue `42` da `42.0`, e un gateway che serializzasse un contatore come `42.0` romperebbe di nuovo l'intera chiamata; le statistiche finiscono comunque in sistemi di metriche che usano float64. Restano `int` solo `port` e `localPort`, che sono identificatori. Il test di caratterizzazione `TestKnownBug_StatsFractionalBitrate` è stato **invertito** in `TestStatsAcceptsFractionalValues` (+ `TestStatsCountersAcceptTrailingZero`), come previsto quando fu scritto.
 
 `bitrate`, `sendRate`, `usedBandwidth` sono documentati come `number` in **Mbit/s** (quindi frazionari) ma
 sono `int`. Verificato: `json: cannot unmarshal number 4.5 into Go struct field
@@ -532,12 +538,16 @@ campo per campo per non convertire a caso i contatori (che restano interi).
 
 ### `validator-v10-optional-fields` — la validazione rifiuta route legittime e si rompe sui bool
 
-- **status**: open
+- **status**: done
 - **priority**: medium
 - **impact**: major
 - **labels**: validation, dependencies, breaking, audit-p0
 - **milestone**: v2.0.0 — Contratto API allineato e superficie pulita
 - **ref**: [audit §B7](audit-2026-08-10.md)
+
+✅ **FATTO in v2.0.0** — migrato a `go-playground/validator/v10` con istanza condivisa (`haivision/validate.go`) ed errori tipizzati `*ValidationError`, che segnalano che **la richiesta non è stata inviata**. Obbligatori solo i campi che il gateway richiede davvero; gli opzionali sono puntatori con `omitempty`, quindi omessi se nil invece di essere inviati a zero.
+
+⚠️ **Trappola trovata migrando**: v10 parsa i tag `validate` di **tutto l'albero** della struct e va in **panic** su una sintassi che non conosce (`Undefined validation function 'nonnil'`). Non basta convertire i tag dei modelli che si validano: i modelli di RISPOSTA, che non si validano mai, avevano tag `validator.v2` ed erano raggiungibili dall'albero. Sono stati rimossi del tutto, insieme ai `required:"true"` che nessuna libreria ha mai letto.
 
 `validate:"nonnil,min=1"` è su **tutti** i campi, inclusi gli opzionali (`ttl`, `tos`, `retainHeader`, tutti
 `string`): verificato che una route SRT senza `ttl`/`tos` viene rifiutata lato client prima di partire. E
@@ -547,12 +557,14 @@ richiede davvero e usare puntatori per gli opzionali. Breaking sui tag e sul tip
 
 ### `typed-get-routes` — `GetRoutes` restituisce `*resty.Response`: il trasporto è nell'API pubblica
 
-- **status**: open
+- **status**: done
 - **priority**: medium
 - **impact**: major
 - **labels**: api-surface, routes, breaking, audit-p0
 - **milestone**: v2.0.0 — Contratto API allineato e superficie pulita
 - **ref**: [audit §B8](audit-2026-08-10.md)
+
+✅ **FATTO in v2.0.0** — `GetRoutes[TS,TD]` e `GetRouteConfiguration[TS,TD]` sono funzioni generiche che restituiscono i modelli tipizzati: `*resty.Response` non è più esposto nell'API pubblica. Restano `GetRoutesRaw`/`GetRouteConfigurationRaw` che tornano `json.RawMessage`, per ispezionare un payload senza scegliere i tipi. Sono **funzioni** e non metodi perché in Go i metodi non possono avere type parameter.
 
 `GetRoutes` e `GetRouteConfiguration` ritornano la risposta resty grezza: il consumer deserializza a mano e
 il tipo della libreria HTTP è esposto nell'interfaccia (impossibile cambiarla senza rompere tutti). I
@@ -561,12 +573,14 @@ un metodo per protocollo come per `CreateRoute*`.
 
 ### `context-and-timeout` — nessun `context.Context` e nessun timeout: chiamate non cancellabili
 
-- **status**: open
+- **status**: done
 - **priority**: medium
 - **impact**: major
 - **labels**: api-surface, reliability, breaking, audit-p1
 - **milestone**: v2.0.0 — Contratto API allineato e superficie pulita
 - **ref**: [audit §A6](audit-2026-08-10.md)
+
+✅ **FATTO in v2.0.0** — `context.Context` come primo parametro di **tutti** i metodi e le funzioni, propagato a resty con `SetContext`. `Config.Timeout` con `DefaultTimeout` di 30s se non impostato. Verificato con `TestContextCancellationAbortsRequest` (context annullato → `errors.Is(err, context.Canceled)`) e `TestConfigTimeout` contro un handler che non risponde.
 
 Nessun metodo accetta un context e il client resty non ha `SetTimeout`: verso un gateway irraggiungibile una
 chiamata può bloccarsi a lungo, e chi usa l'SDK dentro un handler HTTP non può propagare la cancellazione.
@@ -576,12 +590,14 @@ chi la implementa nei mock.
 
 ### `builder-options-struct` — costruttore a 6 parametri posizionali che fa I/O di rete
 
-- **status**: open
+- **status**: done
 - **priority**: medium
 - **impact**: major
 - **labels**: api-surface, dx, breaking, audit-p1
 - **milestone**: v2.0.0 — Contratto API allineato e superficie pulita
 - **ref**: [audit §A2](audit-2026-08-10.md)
+
+✅ **FATTO in v2.0.0** — `BuildHaivision` con sei parametri posizionali → **`Config`** + `New` (nessun I/O) e `Connect` (le due chiamate di rete), più `Dial` = New+Connect per chi non ha bisogno di separarli. `Config.Insecure` è un `bool`: il bug del `*bool` non letto **non è più esprimibile**. `Config.validate()` rifiuta URL senza schema/host, credenziali mancanti e timeout negativi con `ErrInvalidConfig`. `Connect` è rieseguibile (per le sessioni scadute) e rifiuta un 2xx senza `sessionID`.
 
 `BuildHaivision(url, debug, username, password, header, insecure)` mescola tipi ambigui (due `bool`-ish, due
 `string` adiacenti) e fa **2 chiamate HTTP** dentro il costruttore, quindi non è testabile senza rete e non
@@ -591,26 +607,52 @@ Coordinare con `context-and-timeout`: stesso ciclo di refactoring, un solo break
 
 ### `route-update-delete` — mancano update route, delete route e gestione destinazioni
 
-- **status**: open
+- **status**: done
 - **priority**: medium
 - **impact**: major
 - **labels**: feature, routes, breaking, audit-p0
 - **milestone**: v2.0.0 — Contratto API allineato e superficie pulita
 - **ref**: [audit §B8](audit-2026-08-10.md)
 
+✅ **FATTO in v2.0.0** — aggiunte `UpdateRoute[TS,TD]`, `DeleteRoute`, `StartRoute`/`StopRoute`, `StartOrStopDestination[TS,TD]` e `Logout`.
+
+I payload **non sono stati indovinati**: estratti dal PDF in `docs/` (decomprimendo gli stream con zlib). La update ha `elementID` e **non** ha `startRoute`; la delete non ha `fields`. Soprattutto: avviare/fermare una singola destinazione **non ha un endpoint dedicato** — è una update con `action` sulla destinazione interessata e le altre incluse senza action (ometterle le rimuoverebbe). `StartOrStopDestination` verifica che l'`Action` sia impostata sul modello e rifiuta altrimenti, così non parte una update che non fa nulla. Documentato che `UpdateRoute` **sostituisce** e non modifica.
+
 L'SDK copre create/list/start/stop e le statistiche; mancano update di una route, delete, start/stop della
 singola destinazione e il logout di sessione. Sono aggiunte funzionali, ma passando per
 `IHaivisionClient` rompono chi implementa l'interfaccia → `major`. Da fare nello stesso ciclo di
 `context-and-timeout` e `builder-options-struct` per non spendere due major.
 
+### `request-field-types-mismatch` — tipi dei campi di richiesta diversi da quelli della doc
+
+- **status**: done
+- **priority**: high
+- **impact**: major
+- **labels**: api-contract, breaking
+- **milestone**: v2.0.0 — Contratto API allineato e superficie pulita
+- **ref**: [audit §B](audit-2026-08-10.md)
+
+✅ **FATTO in v2.0.0 — trovato estraendo gli esempi dal PDF della doc**, non presente nell'audit iniziale.
+
+Gli esempi letterali della REST API Integrator's Reference fissano i tipi:
+`"ttl": 64, "mtu": 1496, "tos": 136, "shaping": false, "maxBitrate": 10000`. I nostri modelli di
+richiesta avevano `Ttl string`, `Tos string`, `Shaping *string`, `MaxBitrate *string`: il gateway
+avrebbe rifiutato quei campi. Corretti a `*int`/`*bool` su tutti e quattro i protocolli, insieme al
+tag `RtmpMode` → `rtmpMode`.
+
+Coperto da `TestDestinationFieldTypesMatchDoc`, che ricostruisce l'esempio della doc e verifica che
+ogni campo serializzi come numero o booleano JSON, non come stringa.
+
 ### `x-net-http2-go-directive` — bump `x/net` alla versione col fix HTTP/2: alza la direttiva `go` a 1.25
 
-- **status**: open
+- **status**: done
 - **priority**: low
 - **impact**: major
 - **labels**: security, dependencies, breaking
 - **milestone**: v2.0.0 — Contratto API allineato e superficie pulita
 - **ref**: [audit §D](audit-2026-08-10.md)
+
+✅ **FATTO in v2.0.0** — direttiva `go 1.18` → **`go 1.25.0`**, `x/net` v0.35.0 → **v0.57.0**, resty v2.14.0 → **v2.17.2**. `govulncheck` non segnala più **nessuna** vulnerabilità in `x/net` (le vuln nei moduli richiesti sono scese da 22 a 9). Matrice CI ridotta a `1.25.x`: le versioni precedenti non compilano più affatto, quindi tenerle sarebbe un gate rosso garantito. Le 22 vulnerabilità stdlib che restano dipendono dal **toolchain** con cui si compila (serve go ≥ 1.25.12), non da `go.mod`.
 
 Scorporato da `deps-x-net-vuln` (v1.1.0), dove il bump non era fattibile: **`golang.org/x/net` v0.53.0 —
 la prima con il fix di GO-2026-4918 — richiede `go 1.25.0`**, quindi alzerebbe la direttiva `go` del modulo
@@ -623,12 +665,14 @@ della versione minima di Go supportata (`ci-go-matrix-and-actions`): è la stess
 
 ### `exported-naming-typos` — refusi in identificatori esportati
 
-- **status**: open
+- **status**: done
 - **priority**: low
 - **impact**: major
 - **labels**: cleanup, naming, breaking, audit-p2
 - **milestone**: v2.0.0 — Contratto API allineato e superficie pulita
 - **ref**: [audit §C](audit-2026-08-10.md)
+
+✅ **FATTO in v2.0.0** — `ROUTE_COMMMAND` → `ROUTE_COMMANDS` (+ `ROUTE_UPDATES` e `POST_ROUTE_UPDATES`, che rendono espliciti i due endpoint distinti); `ResponseStartOrRoute` → `ResponseRouteCommand`; `PrompegFeclsBlockAligned` → `PrompegFecIsBlockAligned` (`ls` invece di `Is`), che era **anche** un bug di deserializzazione perché cambiava il campo JSON atteso rispetto alla request. Corretto anche `RtmpMode` → `rtmpMode` nel tag JSON della source RTMP: con la maiuscola il gateway non lo riconosceva.
 
 `ROUTE_COMMMAND` (tre `M`), `ResponseStartOrRoute` (manca "Stop"), e in `udp_rtp/response.go`
 `PrompegFeclsBlockAligned` — `ls` invece di `Is`, che cambia anche il campo JSON atteso rispetto a

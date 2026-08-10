@@ -1,5 +1,17 @@
 package stats
 
+// Modelli delle statistiche.
+//
+// TUTTI i campi numerici sono `float64`, non `int`. La doc Haivision li dà come `number` e
+// molti sono misure in Mbit/s (`bitrate`, `sendRate`, `usedBandwidth`), quindi frazionarie: con
+// `int` un solo valore come 4.5 faceva fallire l'INTERA chiamata Get*Statistics con
+// "cannot unmarshal number 4.5 into Go value of type int".
+//
+// Anche i contatori (numPackets, signalLosses, fec*Packets) sono float64: JSON non distingue
+// 42 da 42.0, e un gateway che serializzasse un contatore come 42.0 romperebbe di nuovo tutto.
+// Le statistiche finiscono comunque in sistemi di metriche che usano float64.
+// Restano `int` solo `port` e `localPort`, che sono identificatori e non misure.
+
 /*
 name	string	Name of the source.
 id	string	Unique identifier for the source.
@@ -18,20 +30,20 @@ fecUnrecoveredPackets	number	Number of unrecovered FEC packets.
 fecReorderedPackets
 */
 type SourceStatisticsModel struct {
-	Name                  string `json:"name"`
-	ID                    string `json:"id"`
-	Mode                  string `json:"mode"`
-	ElapsedRunningTime    string `json:"elapsedRunningTime"`
-	SignalLosses          int    `json:"signalLosses"`
-	SendRate              int    `json:"sendRate"`
-	NumPackets            int    `json:"numPackets"`
-	UsedBandwidth         int    `json:"usedBandwidth"`
-	Bitrate               int    `json:"bitrate"`
-	State                 string `json:"state"`
-	FecLostPackets        int    `json:"fecLostPackets"`
-	FecRecoveredPackets   int    `json:"fecRecoveredPackets"`
-	FecUnrecoveredPackets int    `json:"fecUnrecoveredPackets"`
-	FecReorderedPackets   int    `json:"fecReorderedPackets"`
+	Name                  string  `json:"name"`
+	ID                    string  `json:"id"`
+	Mode                  string  `json:"mode"`
+	ElapsedRunningTime    string  `json:"elapsedRunningTime"`
+	SignalLosses          float64 `json:"signalLosses"`
+	SendRate              float64 `json:"sendRate"`
+	NumPackets            float64 `json:"numPackets"`
+	UsedBandwidth         float64 `json:"usedBandwidth"`
+	Bitrate               float64 `json:"bitrate"`
+	State                 string  `json:"state"`
+	FecLostPackets        float64 `json:"fecLostPackets"`
+	FecRecoveredPackets   float64 `json:"fecRecoveredPackets"`
+	FecUnrecoveredPackets float64 `json:"fecUnrecoveredPackets"`
+	FecReorderedPackets   float64 `json:"fecReorderedPackets"`
 }
 
 /*
@@ -49,16 +61,16 @@ sendRate	number	Packet send rate in Mbits/s.
 numPackets	number	Number of packets.
 */
 type DestinationStatisticsUdpRtpHlsModel struct {
-	Name               string `json:"name"`
-	ID                 string `json:"id"`
-	Mode               string `json:"mode"`
-	State              string `json:"state"`
-	ElapsedRunningTime string `json:"elapsedRunningTime"`
-	Bitrate            int    `json:"bitrate"`
-	SignalLosses       int    `json:"signalLosses"`
-	UsedBandwidth      int    `json:"usedBandwidth"`
-	SendRate           int    `json:"sendRate"`
-	NumPackets         int    `json:"numPackets"`
+	Name               string  `json:"name"`
+	ID                 string  `json:"id"`
+	Mode               string  `json:"mode"`
+	State              string  `json:"state"`
+	ElapsedRunningTime string  `json:"elapsedRunningTime"`
+	Bitrate            float64 `json:"bitrate"`
+	SignalLosses       float64 `json:"signalLosses"`
+	UsedBandwidth      float64 `json:"usedBandwidth"`
+	SendRate           float64 `json:"sendRate"`
+	NumPackets         float64 `json:"numPackets"`
 }
 
 /*
@@ -97,25 +109,25 @@ type DestinationStatisticsSrtModel struct {
 	Protocol               string                                     `json:"protocol"`
 	State                  string                                     `json:"state"`
 	ElapsedRunningTime     string                                     `json:"elapsedRunningTime"`
-	Bitrate                int                                        `json:"bitrate"`
-	SignalLosses           int                                        `json:"signalLosses"`
-	UsedBandwidth          int                                        `json:"usedBandwidth"`
-	SendRate               int                                        `json:"sendRate"`
-	NumPackets             int                                        `json:"numPackets"`
-	SrtNumLostPackets      int                                        `json:"srtNumLostPackets"`
-	SrtPacketLossRate      int                                        `json:"srtPacketLossRate"`
-	SrtNumSkippedPackets   int                                        `json:"srtNumSkippedPackets"`
-	SrtDroppedPackets      int                                        `json:"srtDroppedPackets"`
-	SrtRoundTripTime       int                                        `json:"srtRoundTripTime"`
-	SrtBufferLevel         int                                        `json:"srtBufferLevel"`
-	SrtNegotiatedLatency   int                                        `json:"srtNegotiatedLatency"`
-	SrtLatency             int                                        `json:"srtLatency"`
+	Bitrate                float64                                    `json:"bitrate"`
+	SignalLosses           float64                                    `json:"signalLosses"`
+	UsedBandwidth          float64                                    `json:"usedBandwidth"`
+	SendRate               float64                                    `json:"sendRate"`
+	NumPackets             float64                                    `json:"numPackets"`
+	SrtNumLostPackets      float64                                    `json:"srtNumLostPackets"`
+	SrtPacketLossRate      float64                                    `json:"srtPacketLossRate"`
+	SrtNumSkippedPackets   float64                                    `json:"srtNumSkippedPackets"`
+	SrtDroppedPackets      float64                                    `json:"srtDroppedPackets"`
+	SrtRoundTripTime       float64                                    `json:"srtRoundTripTime"`
+	SrtBufferLevel         float64                                    `json:"srtBufferLevel"`
+	SrtNegotiatedLatency   float64                                    `json:"srtNegotiatedLatency"`
+	SrtLatency             float64                                    `json:"srtLatency"`
 	SrtDecryptionState     string                                     `json:"srtDecryptionState"`
 	SrtPeerDecryptionState string                                     `json:"srtPeerDecryptionState"`
 	SrtEncryption          string                                     `json:"srtEncryption"`
-	SrtMaxBandwidth        int                                        `json:"srtMaxBandwidth"`
-	SrtRetransmitRate      int                                        `json:"srtRetransmitRate"`
-	SrtEstimatedBandwidth  int                                        `json:"srtEstimatedBandwidth"`
+	SrtMaxBandwidth        float64                                    `json:"srtMaxBandwidth"`
+	SrtRetransmitRate      float64                                    `json:"srtRetransmitRate"`
+	SrtEstimatedBandwidth  float64                                    `json:"srtEstimatedBandwidth"`
 	ClientStat             []DestinationStatisticsSrtClientStatModel  `json:"clientStat"`
 	Connections            []DestinationStatisticsSrtConnectionsModel `json:"connections"`
 }
@@ -149,11 +161,11 @@ type DestinationStatisticsSrtClientStatModel struct {
 	Label          string                                     `json:"label"`
 	Address        string                                     `json:"address"`
 	Port           int                                        `json:"port"`
-	Bitrate        int                                        `json:"bitrate"`
-	SignalLosses   int                                        `json:"signalLosses"`
+	Bitrate        float64                                    `json:"bitrate"`
+	SignalLosses   float64                                    `json:"signalLosses"`
 	SrtVersion     string                                     `json:"srtVersion"`
 	SrtPeerVersion string                                     `json:"srtPeerVersion"`
-	UsedBandwidth  int                                        `json:"usedBandwidth"`
+	UsedBandwidth  float64                                    `json:"usedBandwidth"`
 	Connections    []DestinationStatisticsSrtConnectionsModel `json:"connections"`
 }
 
@@ -233,48 +245,48 @@ usedBandwidth	number
 (tick)	Bandwidth used in Mbits/s.
 */
 type DestinationStatisticsSrtConnectionsModel struct {
-	SrtPeerVersion              string `json:"srtPeerVersion"`
-	Address                     string `json:"address"`
-	Bitrate                     int    `json:"bitrate"`
-	Label                       string `json:"label"`
-	LocalAddress                string `json:"localAddress"`
-	Port                        int    `json:"port"`
-	SignalLosses                int    `json:"signalLosses"`
-	LocalPort                   int    `json:"localPort"`
-	NetworkInterface            string `json:"networkInterface"`
-	NumPackets                  int    `json:"numPackets"`
-	SrtBufferLevel              int    `json:"srtBufferLevel"`
-	SrtCurrentBandwidth         int    `json:"srtCurrentBandwidth"`
-	SrtDecryptionState          string `json:"srtDecryptionState"`
-	SrtDroppedPackets           int    `json:"srtDroppedPackets"`
-	SrtDroppedPacketsDiff       int    `json:"srtDroppedPacketsDiff"`
-	SrtEncryption               string `json:"srtEncryption"`
-	SrtEstimatedBandwidth       int    `json:"srtEstimatedBandwidth"`
-	SrtFec                      string `json:"srtFec"`
-	SrtFecArq                   string `json:"srtFecArq"`
-	SrtFecCols                  int    `json:"srtFecCols"`
-	SrtFecLayout                string `json:"srtFecLayout"`
-	SrtFecPacketLoss            int    `json:"srtFecPacketLoss"`
-	SrtFecRecoveredPackets      int    `json:"srtFecRecoveredPackets"`
-	SrtFecRows                  int    `json:"srtFecRows"`
-	SrtFecTotalPacketLoss       int    `json:"srtFecTotalPacketLoss"`
-	SrtFecTotalRecoveredPackets int    `json:"srtFecTotalRecoveredPackets"`
-	SrtGroupMemberStatus        string `json:"srtGroupMemberStatus"`
-	SrtGroupMemberWeight        int    `json:"srtGroupMemberWeight"`
-	SrtGroupMode                string `json:"srtGroupMode"`
-	SrtMaxBandwidth             int    `json:"srtMaxBandwidth"`
-	SrtNegotiatedLatency        int    `json:"srtNegotiatedLatency"`
-	SrtNumLostPackets           int    `json:"srtNumLostPackets"`
-	SrtNumPackets               int    `json:"srtNumPackets"`
-	SrtPacketLossRate           int    `json:"srtPacketLossRate"`
-	SrtPeerDecryptionState      string `json:"srtPeerDecryptionState"`
-	SrtRetransmitRate           int    `json:"srtRetransmitRate"`
-	SrtRoundTripTime            int    `json:"srtRoundTripTime"`
-	SrtSkippedPackets           int    `json:"srtSkippedPackets"`
-	SrtSkippedPacketsDiff       int    `json:"srtSkippedPacketsDiff"`
-	SrtVersion                  string `json:"srtVersion"`
-	State                       string `json:"state"`
-	UsedBandwidth               int    `json:"usedBandwidth"`
+	SrtPeerVersion              string  `json:"srtPeerVersion"`
+	Address                     string  `json:"address"`
+	Bitrate                     float64 `json:"bitrate"`
+	Label                       string  `json:"label"`
+	LocalAddress                string  `json:"localAddress"`
+	Port                        int     `json:"port"`
+	SignalLosses                float64 `json:"signalLosses"`
+	LocalPort                   int     `json:"localPort"`
+	NetworkInterface            string  `json:"networkInterface"`
+	NumPackets                  float64 `json:"numPackets"`
+	SrtBufferLevel              float64 `json:"srtBufferLevel"`
+	SrtCurrentBandwidth         float64 `json:"srtCurrentBandwidth"`
+	SrtDecryptionState          string  `json:"srtDecryptionState"`
+	SrtDroppedPackets           float64 `json:"srtDroppedPackets"`
+	SrtDroppedPacketsDiff       float64 `json:"srtDroppedPacketsDiff"`
+	SrtEncryption               string  `json:"srtEncryption"`
+	SrtEstimatedBandwidth       float64 `json:"srtEstimatedBandwidth"`
+	SrtFec                      string  `json:"srtFec"`
+	SrtFecArq                   string  `json:"srtFecArq"`
+	SrtFecCols                  float64 `json:"srtFecCols"`
+	SrtFecLayout                string  `json:"srtFecLayout"`
+	SrtFecPacketLoss            float64 `json:"srtFecPacketLoss"`
+	SrtFecRecoveredPackets      float64 `json:"srtFecRecoveredPackets"`
+	SrtFecRows                  float64 `json:"srtFecRows"`
+	SrtFecTotalPacketLoss       float64 `json:"srtFecTotalPacketLoss"`
+	SrtFecTotalRecoveredPackets float64 `json:"srtFecTotalRecoveredPackets"`
+	SrtGroupMemberStatus        string  `json:"srtGroupMemberStatus"`
+	SrtGroupMemberWeight        float64 `json:"srtGroupMemberWeight"`
+	SrtGroupMode                string  `json:"srtGroupMode"`
+	SrtMaxBandwidth             float64 `json:"srtMaxBandwidth"`
+	SrtNegotiatedLatency        float64 `json:"srtNegotiatedLatency"`
+	SrtNumLostPackets           float64 `json:"srtNumLostPackets"`
+	SrtNumPackets               float64 `json:"srtNumPackets"`
+	SrtPacketLossRate           float64 `json:"srtPacketLossRate"`
+	SrtPeerDecryptionState      string  `json:"srtPeerDecryptionState"`
+	SrtRetransmitRate           float64 `json:"srtRetransmitRate"`
+	SrtRoundTripTime            float64 `json:"srtRoundTripTime"`
+	SrtSkippedPackets           float64 `json:"srtSkippedPackets"`
+	SrtSkippedPacketsDiff       float64 `json:"srtSkippedPacketsDiff"`
+	SrtVersion                  string  `json:"srtVersion"`
+	State                       string  `json:"state"`
+	UsedBandwidth               float64 `json:"usedBandwidth"`
 }
 
 /*

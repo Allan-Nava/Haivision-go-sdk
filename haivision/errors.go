@@ -64,3 +64,20 @@ func bodyExcerpt(b []byte) string {
 	}
 	return s
 }
+
+// DecodeError segnala che il gateway ha risposto 2xx ma con un body che non corrisponde al
+// modello atteso: tipicamente una pagina HTML di un proxy, o un campo con un tipo diverso da
+// quello documentato. Porta l'etichetta della chiamata, perché un "cannot unmarshal" nudo non
+// dice quale endpoint ha risposto male.
+type DecodeError struct {
+	Label string
+	Body  string
+	Err   error
+}
+
+func (e *DecodeError) Error() string {
+	return fmt.Sprintf("haivision: %s: risposta non deserializzabile: %v (body: %s)",
+		e.Label, e.Err, e.Body)
+}
+
+func (e *DecodeError) Unwrap() error { return e.Err }

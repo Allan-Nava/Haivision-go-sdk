@@ -12,15 +12,15 @@ package session
 	}
 */
 type BaseResponseInitSession struct {
-	Response ResponseInitSession `json:"response" validate:"nonzero"`
+	Response ResponseInitSession `json:"response"`
 }
 
 type ResponseInitSession struct {
-	Type             string `json:"type" validate:"nonzero"`
-	Message          string `json:"message" validate:"nonzero"`
-	SessionID        string `json:"sessionID" validate:"nonzero"`
-	LastLoginDate    int64  `json:"lastLoginDate" validate:"nonzero"`
-	NumLoginFailures int    `json:"numLoginFailures" validate:"nonzero"`
+	Type             string `json:"type"`
+	Message          string `json:"message"`
+	SessionID        string `json:"sessionID"`
+	LastLoginDate    int64  `json:"lastLoginDate"`
+	NumLoginFailures int    `json:"numLoginFailures"`
 }
 
 /*
@@ -39,13 +39,13 @@ type ResponseInitSession struct {
 	}
 */
 type ResponseSessionInfo struct {
-	SessionID        string   `json:"sessionID" validate:"nonzero"`
-	DisplayName      string   `json:"displayName" validate:"nonzero"`
-	Email            string   `json:"email" validate:"nonzero"`
-	Roles            []string `json:"roles" validate:"nonzero"`
-	StartAt          int64    `json:"startAt" validate:"nonzero"`
-	ExpireAt         int64    `json:"expireAt" validate:"nonzero"`
-	LastLoginDate    int64    `json:"lastLoginDate" validate:"nonzero"`
-	NumLoginFailures int      `json:"numLoginFailures" validate:"nonzero"`
-	IsLicensed       bool     `json:"isLicensed" validate:"nonzero"`
+	SessionID        string   `json:"sessionID"`
+	DisplayName      string   `json:"displayName"`
+	Email            string   `json:"email"`
+	Roles            []string `json:"roles"`
+	StartAt          int64    `json:"startAt"`
+	ExpireAt         int64    `json:"expireAt"`
+	LastLoginDate    int64    `json:"lastLoginDate"`
+	NumLoginFailures int      `json:"numLoginFailures"`
+	IsLicensed       bool     `json:"isLicensed"`
 }

@@ -43,7 +43,7 @@ func TestRouteStatisticsResponse(t *testing.T) {
 		t.Errorf("Route.ID = %q", obj.Route.ID)
 	}
 	if obj.Route.Source.NumPackets != 12345 {
-		t.Errorf("Source.NumPackets = %d", obj.Route.Source.NumPackets)
+		t.Errorf("Source.NumPackets = %v", obj.Route.Source.NumPackets)
 	}
 	if obj.Route.Source.ElapsedRunningTime != "00:03:46" {
 		t.Errorf("ElapsedRunningTime = %q (la doc lo dà come stringa HH:MM:SS)",
@@ -51,22 +51,39 @@ func TestRouteStatisticsResponse(t *testing.T) {
 	}
 }
 
-// TestKnownBug_StatsFractionalBitrate documenta un bug APERTO, non un comportamento atteso.
-//
-// La doc dà `bitrate`, `sendRate` e `usedBandwidth` come `number` in **Mbit/s**, quindi
-// frazionari, ma i modelli in haivision/stats li tipizzano `int`: un solo valore non intero fa
-// fallire l'INTERA chiamata Get*Statistics. Item di backlog: `stats-float64` (v2.0.0, breaking
-// perché cambia il tipo di campi esportati).
-//
-// Quando quell'item sarà chiuso questo test FALLIRÀ: va riscritto per asserire i valori.
-func TestKnownBug_StatsFractionalBitrate(t *testing.T) {
+// I valori frazionari sono il caso NORMALE: la doc dà bitrate/sendRate/usedBandwidth come
+// `number` in Mbit/s. Fino alla v1.x erano tipizzati `int` e un solo 4.5 faceva fallire l'INTERA
+// chiamata Get*Statistics con "cannot unmarshal number 4.5 into Go value of type int".
+func TestStatsAcceptsFractionalValues(t *testing.T) {
 	var m stats.SourceStatisticsModel
-	err := json.Unmarshal([]byte(`{"name":"src","bitrate":4.5,"sendRate":1.25}`), &m)
-	if err == nil {
-		t.Fatalf("l'unmarshal ora RIESCE: il bug `stats-float64` è stato corretto — " +
-			"riscrivi questo test per asserire bitrate=4.5 e sendRate=1.25")
+	body := `{"name":"src","bitrate":4.5,"sendRate":1.25,"usedBandwidth":0.338,"numPackets":12345}`
+	if err := json.Unmarshal([]byte(body), &m); err != nil {
+		t.Fatalf("unmarshal con valori frazionari: %v", err)
 	}
-	t.Logf("bug aperto confermato (`stats-float64`): %v", err)
+	if m.Bitrate != 4.5 {
+		t.Errorf("Bitrate = %v, atteso 4.5", m.Bitrate)
+	}
+	if m.SendRate != 1.25 {
+		t.Errorf("SendRate = %v, atteso 1.25", m.SendRate)
+	}
+	if m.UsedBandwidth != 0.338 {
+		t.Errorf("UsedBandwidth = %v, atteso 0.338", m.UsedBandwidth)
+	}
+	if m.NumPackets != 12345 {
+		t.Errorf("NumPackets = %v, atteso 12345", m.NumPackets)
+	}
+}
+
+// Anche i contatori sono float64: JSON non distingue 42 da 42.0, e un gateway che serializzasse
+// un contatore come 42.0 romperebbe di nuovo tutto se fossero `int`.
+func TestStatsCountersAcceptTrailingZero(t *testing.T) {
+	var m stats.SourceStatisticsModel
+	if err := json.Unmarshal([]byte(`{"numPackets":42.0,"signalLosses":0.0}`), &m); err != nil {
+		t.Fatalf("unmarshal con contatori in forma 42.0: %v", err)
+	}
+	if m.NumPackets != 42 {
+		t.Errorf("NumPackets = %v", m.NumPackets)
+	}
 }
 
 func TestSourceStatisticsResponse(t *testing.T) {

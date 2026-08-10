@@ -11,25 +11,11 @@ permalink: /roadmap
 <!-- GENERATO da scripts/generate-roadmap.py — NON editare a mano. -->
 > ⚙️ Pagina **generata** da [`scripts/generate-roadmap.py`](https://github.com/Allan-Nava/Haivision-go-sdk/blob/main/scripts/generate-roadmap.py) leggendo [`docs/backlog.md`](backlog.md) (unica sorgente). Rigenerala con `make roadmap`; `make roadmap-check` è il gate in CI.
 
-_Baseline rilasciata: **v1.2.0** · 3 milestone · 33 item pianificati (10 open · 23 done)._
+_Baseline rilasciata: **v2.0.0** · 3 milestone · 34 item pianificati (0 open · 34 done)._
 
 ## Prossima release
 
-**v2.0.0 — Contratto API allineato e superficie pulita** — 10 item da chiudere (0 già fatti). `major` bump rispetto a **v1.2.0** (minimo imposto dagli item: `major`).
-
-```
-  v1.2.0 (rilasciata)
-     │   v2.0.0    [░░░░░░░░░░░░░░░░] 0/10  major  ◀── PROSSIMA
-     ▼
-```
-
-Blocker `high` di v2.0.0:
-
-| id | Titolo | Impatto | Priorità |
-|----|--------|---------|----------|
-| `create-route-request-model` | `CreateRoute*` invia il modello di risposta, non la richiesta | 💥 major | high |
-| `startstop-response-slice` | `ResponseStartOrRoute` non deserializza la risposta reale | 💥 major | high |
-| `stats-float64` | bitrate e rate in Mbit/s tipizzati `int`: ogni valore frazionario rompe la chiamata | 💥 major | high |
+Nessuna milestone pendente: **il backlog pianificato è tutto rilasciato**. La prossima release va aperta aggiungendo item con una nuova `- **milestone**: vX.Y.Z — Titolo` in [`backlog.md`](backlog.md).
 
 ## v1.1.0 — Correttezza client, sicurezza, wire fix
 
@@ -70,20 +56,21 @@ _🏷️ **rilasciata** (tag v1.2.0) · impatto: **patch** · 9 item_
 
 ## v2.0.0 — Contratto API allineato e superficie pulita
 
-_major bump da v1.2.0 · impatto richiesto dagli item: **major** · 🟢 10 open · 0 done_
+_🏷️ **rilasciata** (tag v2.0.0) · impatto: **major** · 11 item_
 
 | id | Titolo | Impatto | Priorità | Status |
 |----|--------|---------|----------|--------|
-| `create-route-request-model` | `CreateRoute*` invia il modello di risposta, non la richiesta | 💥 major | high | 🟢 open |
-| `startstop-response-slice` | `ResponseStartOrRoute` non deserializza la risposta reale | 💥 major | high | 🟢 open |
-| `stats-float64` | bitrate e rate in Mbit/s tipizzati `int`: ogni valore frazionario rompe la chiamata | 💥 major | high | 🟢 open |
-| `builder-options-struct` | costruttore a 6 parametri posizionali che fa I/O di rete | 💥 major | medium | 🟢 open |
-| `context-and-timeout` | nessun `context.Context` e nessun timeout: chiamate non cancellabili | 💥 major | medium | 🟢 open |
-| `route-update-delete` | mancano update route, delete route e gestione destinazioni | 💥 major | medium | 🟢 open |
-| `typed-get-routes` | `GetRoutes` restituisce `*resty.Response`: il trasporto è nell'API pubblica | 💥 major | medium | 🟢 open |
-| `validator-v10-optional-fields` | la validazione rifiuta route legittime e si rompe sui bool | 💥 major | medium | 🟢 open |
-| `exported-naming-typos` | refusi in identificatori esportati | 💥 major | low | 🟢 open |
-| `x-net-http2-go-directive` | bump `x/net` alla versione col fix HTTP/2: alza la direttiva `go` a 1.25 | 💥 major | low | 🟢 open |
+| `create-route-request-model` | `CreateRoute*` invia il modello di risposta, non la richiesta | 💥 major | high | ✅ done |
+| `request-field-types-mismatch` | tipi dei campi di richiesta diversi da quelli della doc | 💥 major | high | ✅ done |
+| `startstop-response-slice` | `ResponseStartOrRoute` non deserializza la risposta reale | 💥 major | high | ✅ done |
+| `stats-float64` | bitrate e rate in Mbit/s tipizzati `int`: ogni valore frazionario rompe la chiamata | 💥 major | high | ✅ done |
+| `builder-options-struct` | costruttore a 6 parametri posizionali che fa I/O di rete | 💥 major | medium | ✅ done |
+| `context-and-timeout` | nessun `context.Context` e nessun timeout: chiamate non cancellabili | 💥 major | medium | ✅ done |
+| `route-update-delete` | mancano update route, delete route e gestione destinazioni | 💥 major | medium | ✅ done |
+| `typed-get-routes` | `GetRoutes` restituisce `*resty.Response`: il trasporto è nell'API pubblica | 💥 major | medium | ✅ done |
+| `validator-v10-optional-fields` | la validazione rifiuta route legittime e si rompe sui bool | 💥 major | medium | ✅ done |
+| `exported-naming-typos` | refusi in identificatori esportati | 💥 major | low | ✅ done |
+| `x-net-http2-go-directive` | bump `x/net` alla versione col fix HTTP/2: alza la direttiva `go` a 1.25 | 💥 major | low | ✅ done |
 
 ## Non pianificati (senza milestone)
 

@@ -1,23 +1,26 @@
 package test
 
 import (
+	"context"
+	"encoding/json"
 	"net/http"
 	"testing"
 
 	"github.com/Allan-Nava/Haivision-go-sdk/haivision"
+	"github.com/Allan-Nava/Haivision-go-sdk/haivision/srt"
 )
 
 // Copertura dei metodi di statistica e di lettura route contro lo stub: verifica path, query
 // param e deserializzazione. Complementare a wire_stats_test.go, che copre solo le struct.
 
 // connected costruisce un client già autenticato sullo stub.
-func connected(t *testing.T, g *gatewayStub) haivision.IHaivisionClient {
+func connected(t *testing.T, g *gatewayStub) *haivision.Client {
 	t.Helper()
 	g.on(http.MethodPost, "/api/session", http.StatusOK, sessionOKBody)
 	g.on(http.MethodGet, "/api/devices", http.StatusOK, devicesOKBody)
-	c, err := haivision.BuildHaivision(g.srv.URL, false, "u", "p", nil, nil)
+	c, err := haivision.Dial(context.Background(), haivision.Config{URL: g.srv.URL, Username: "u", Password: "p"})
 	if err != nil {
-		t.Fatalf("BuildHaivision: %v", err)
+		t.Fatalf("Dial: %v", err)
 	}
 	return c
 }
@@ -36,7 +39,7 @@ func TestGetRouteStatistics(t *testing.T) {
 	})
 	c := connected(t, g)
 
-	got, err := c.GetRouteStatistics("dev-1", "route-1")
+	got, err := c.GetRouteStatistics(context.Background(), "dev-1", "route-1")
 	if err != nil {
 		t.Fatalf("GetRouteStatistics: %v", err)
 	}
@@ -61,7 +64,7 @@ func TestGetSourceStatistics(t *testing.T) {
 	})
 	c := connected(t, g)
 
-	got, err := c.GetSourceStatistics("dev-1", "route-1", "src-1")
+	got, err := c.GetSourceStatistics(context.Background(), "dev-1", "route-1", "src-1")
 	if err != nil {
 		t.Fatalf("GetSourceStatistics: %v", err)
 	}
@@ -69,7 +72,7 @@ func TestGetSourceStatistics(t *testing.T) {
 		t.Errorf("query sourceID = %q", gotQuery)
 	}
 	if got.Source.NumPackets != 7 {
-		t.Errorf("NumPackets = %d", got.Source.NumPackets)
+		t.Errorf("NumPackets = %v", got.Source.NumPackets)
 	}
 }
 
@@ -88,13 +91,13 @@ func TestGetDestinationStatisticsByIdAndByName(t *testing.T) {
 	})
 	c := connected(t, g)
 
-	if _, err := c.GetDestinationStatisticsById("dev-1", "route-1", "dst-1"); err != nil {
+	if _, err := c.GetDestinationStatisticsById(context.Background(), "dev-1", "route-1", "dst-1"); err != nil {
 		t.Fatalf("ById: %v", err)
 	}
 	if got := <-seen; got != "id=dst-1" {
 		t.Errorf("ById ha inviato %q", got)
 	}
-	if _, err := c.GetDestinationStatisticsByName("dev-1", "route-1", "uscita-primaria"); err != nil {
+	if _, err := c.GetDestinationStatisticsByName(context.Background(), "dev-1", "route-1", "uscita-primaria"); err != nil {
 		t.Fatalf("ByName: %v", err)
 	}
 	if got := <-seen; got != "name=uscita-primaria" {
@@ -109,7 +112,7 @@ func TestStatisticsPropagatesNotFound(t *testing.T) {
 		`{"error":"route not found"}`)
 	c := connected(t, g)
 
-	_, err := c.GetRouteStatistics("dev-1", "inesistente")
+	_, err := c.GetRouteStatistics(context.Background(), "dev-1", "inesistente")
 	if err == nil {
 		t.Fatal("atteso errore su 404")
 	}
@@ -132,32 +135,80 @@ func TestStatisticsRejectsNonJSONBody(t *testing.T) {
 	})
 	c := connected(t, g)
 
-	if _, err := c.GetRouteStatistics("dev-1", "route-1"); err == nil {
+	if _, err := c.GetRouteStatistics(context.Background(), "dev-1", "route-1"); err == nil {
 		t.Fatal("atteso errore di unmarshal su body HTML")
 	}
 }
 
-func TestGetRoutesAndRouteConfiguration(t *testing.T) {
+func TestGetRoutesTyped(t *testing.T) {
 	g := newGatewayStub(t)
 	g.on(http.MethodGet, "/api/gateway/dev-1/routes", http.StatusOK,
-		`{"data":[],"numPages":1,"numResults":0}`)
-	g.on(http.MethodGet, "/api/gateway/dev-1/routes/route-1", http.StatusOK,
-		`{"id":"route-1","name":"r1"}`)
+		`{"data":[{"id":"route-1","name":"r1","state":"connected",
+		  "source":{"name":"in","id":"src-1","port":2000,"protocol":"srt"},
+		  "destinations":[{"name":"out","id":"dst-1","port":2001,"protocol":"srt"}]}],
+		  "numPages":1,"numResults":1,"numActiveOutputConnections":1}`)
 	c := connected(t, g)
 
-	resp, err := c.GetRoutes("dev-1")
+	// tipi del protocollo scelti dal chiamante: nella v1.x qui tornava un *resty.Response grezzo
+	got, err := haivision.GetRoutes[srt.ResponseSourceSrt, srt.ResponseDestinationSrt](
+		context.Background(), c, "dev-1")
 	if err != nil {
 		t.Fatalf("GetRoutes: %v", err)
 	}
-	if resp.StatusCode() != http.StatusOK {
-		t.Errorf("GetRoutes status = %d", resp.StatusCode())
+	if got.NumResults != 1 || len(got.Data) != 1 {
+		t.Fatalf("routes = %+v", got)
 	}
-	cfg, err := c.GetRouteConfiguration("dev-1", "route-1")
+	r := got.Data[0]
+	if r.ID != "route-1" || r.State != "connected" {
+		t.Errorf("route = %+v", r)
+	}
+	if r.Source.Port != 2000 {
+		t.Errorf("source.port = %d, atteso 2000", r.Source.Port)
+	}
+	if len(r.Destinations) != 1 || r.Destinations[0].Port != 2001 {
+		t.Errorf("destinations = %+v", r.Destinations)
+	}
+}
+
+func TestGetRouteConfigurationTyped(t *testing.T) {
+	g := newGatewayStub(t)
+	g.on(http.MethodGet, "/api/gateway/dev-1/routes/route-1", http.StatusOK,
+		`{"id":"route-1","name":"r1","state":"connected",
+		  "source":{"name":"in","id":"src-1","port":2000},"destinations":[]}`)
+	c := connected(t, g)
+
+	got, err := haivision.GetRouteConfiguration[srt.ResponseSourceSrt, srt.ResponseDestinationSrt](
+		context.Background(), c, "dev-1", "route-1")
 	if err != nil {
 		t.Fatalf("GetRouteConfiguration: %v", err)
 	}
-	if cfg.StatusCode() != http.StatusOK {
-		t.Errorf("GetRouteConfiguration status = %d", cfg.StatusCode())
+	if got.ID != "route-1" || got.Source.Name != "in" {
+		t.Errorf("route = %+v", got)
+	}
+}
+
+// Gli accessi grezzi restano disponibili per ispezionare un payload senza scegliere i tipi.
+func TestGetRoutesRaw(t *testing.T) {
+	g := newGatewayStub(t)
+	g.on(http.MethodGet, "/api/gateway/dev-1/routes", http.StatusOK, `{"data":[],"numResults":0}`)
+	c := connected(t, g)
+
+	raw, err := c.GetRoutesRaw(context.Background(), "dev-1")
+	if err != nil {
+		t.Fatalf("GetRoutesRaw: %v", err)
+	}
+	if !json.Valid(raw) {
+		t.Errorf("payload non JSON valido: %s", raw)
+	}
+}
+
+// deviceID vuoto: errore lato client, nessuna richiesta al gateway.
+func TestGetRoutesRejectsEmptyDeviceID(t *testing.T) {
+	g := newGatewayStub(t)
+	c := connected(t, g)
+	if _, err := haivision.GetRoutes[srt.ResponseSourceSrt, srt.ResponseDestinationSrt](
+		context.Background(), c, ""); err == nil {
+		t.Error("atteso errore con deviceID vuoto")
 	}
 }
 
@@ -170,19 +221,19 @@ func TestGetSessionInfoAndDeviceInfo(t *testing.T) {
 	})
 	c := connected(t, g)
 
-	info, err := c.GetSessionInfo()
+	info, err := c.GetSessionInfo(context.Background())
 	if err != nil {
 		t.Fatalf("GetSessionInfo: %v", err)
 	}
 	if info.DisplayName != "Administrator" || !info.IsLicensed {
 		t.Errorf("session info = %+v", info)
 	}
-	devs, err := c.GetDeviceInfo()
+	devs, err := c.GetDeviceInfo(context.Background())
 	if err != nil {
 		t.Fatalf("GetDeviceInfo: %v", err)
 	}
-	if len(*devs) != 1 || (*devs)[0].ID != "dev-1" {
-		t.Errorf("devices = %+v", *devs)
+	if len(devs) != 1 || devs[0].ID != "dev-1" {
+		t.Errorf("devices = %+v", devs)
 	}
 }
 
@@ -208,9 +259,9 @@ func TestDebugModeDoesNotBreakRequests(t *testing.T) {
 	g.on(http.MethodPost, "/api/session", http.StatusOK, sessionOKBody)
 	g.on(http.MethodGet, "/api/devices", http.StatusOK, devicesOKBody)
 
-	c, err := haivision.BuildHaivision(g.srv.URL, true, "haiadmin", "sup3r-s3cret", nil, nil)
+	c, err := haivision.Dial(context.Background(), haivision.Config{URL: g.srv.URL, Username: "haiadmin", Password: "sup3r-s3cret", Debug: true})
 	if err != nil {
-		t.Fatalf("BuildHaivision con debug: %v", err)
+		t.Fatalf("Dial con debug: %v", err)
 	}
 	if !c.IsDebug() {
 		t.Error("IsDebug() = false con debug=true")
@@ -218,31 +269,29 @@ func TestDebugModeDoesNotBreakRequests(t *testing.T) {
 }
 
 // Un gateway irraggiungibile deve dare errore di trasporto, non panic.
-func TestBuildHaivisionUnreachableGateway(t *testing.T) {
+func TestDialUnreachableGateway(t *testing.T) {
 	// porta 1 su localhost: connection refused immediato
-	if _, err := haivision.BuildHaivision("http://127.0.0.1:1", false, "u", "p", nil, nil); err == nil {
+	if _, err := haivision.Dial(context.Background(), haivision.Config{URL: "http://127.0.0.1:1", Username: "u", Password: "p"}); err == nil {
 		t.Fatal("atteso errore di connessione")
 	}
 }
 
-// insecure=&false NON deve disabilitare la verifica TLS: contro un server HTTPS con
+// Insecure:false NON deve disabilitare la verifica TLS: contro un server HTTPS con
 // certificato self-signed la connessione deve FALLIRE.
 func TestInsecureFalseKeepsTLSVerification(t *testing.T) {
 	g := newTLSGatewayStub(t)
 	g.on(http.MethodPost, "/api/session", http.StatusOK, sessionOKBody)
 	g.on(http.MethodGet, "/api/devices", http.StatusOK, devicesOKBody)
 
-	no := false
-	if _, err := haivision.BuildHaivision(g.srv.URL, false, "u", "p", nil, &no); err == nil {
-		t.Fatal("insecure=&false ha accettato un certificato self-signed: " +
+	if _, err := haivision.Dial(context.Background(), haivision.Config{URL: g.srv.URL, Username: "u", Password: "p", Insecure: false}); err == nil {
+		t.Fatal("Insecure:false ha accettato un certificato self-signed: " +
 			"la verifica TLS è disabilitata quando non dovrebbe")
 	}
-	if _, err := haivision.BuildHaivision(g.srv.URL, false, "u", "p", nil, nil); err == nil {
-		t.Fatal("insecure=nil ha accettato un certificato self-signed")
+	if _, err := haivision.Dial(context.Background(), haivision.Config{URL: g.srv.URL, Username: "u", Password: "p"}); err == nil {
+		t.Fatal("Insecure non impostato ha accettato un certificato self-signed")
 	}
-	// solo &true deve accettarlo
-	yes := true
-	if _, err := haivision.BuildHaivision(g.srv.URL, false, "u", "p", nil, &yes); err != nil {
-		t.Fatalf("insecure=&true deve accettare il self-signed, invece: %v", err)
+	// solo Insecure:true deve accettarlo
+	if _, err := haivision.Dial(context.Background(), haivision.Config{URL: g.srv.URL, Username: "u", Password: "p", Insecure: true}); err != nil {
+		t.Fatalf("Insecure:true deve accettare il self-signed, invece: %v", err)
 	}
 }

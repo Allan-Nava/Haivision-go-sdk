@@ -1,6 +1,6 @@
 package session
 
 type RequestInitSession struct {
-	Username string `json:"username" required:"true" validate:"nonnil,min=1"`
-	Password string `json:"password" required:"true" validate:"nonnil,min=1"`
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }

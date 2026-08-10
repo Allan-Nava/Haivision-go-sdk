@@ -1,7 +1,7 @@
 package haivision
 
 import (
-	"encoding/json"
+	"context"
 
 	"github.com/Allan-Nava/Haivision-go-sdk/haivision/stats"
 )
@@ -11,17 +11,18 @@ GET /api/gateway/[Device ID]/statistics?routeID=[Route ID]
 cookie: sessionID: [Session ID]
 */
 
-func (o *haivisionSdk) GetRouteStatistics(deviceId string, routeId string) (*stats.ResponseRouteStatistics, error) {
-	o.debugf("GetRouteStatistics device=%s route=%s", deviceId, routeId)
+func (c *Client) GetRouteStatistics(ctx context.Context, deviceID, routeID string) (*stats.ResponseRouteStatistics, error) {
+	c.debugf("GetRouteStatistics device=%s route=%s", deviceID, routeID)
 	queryParams := map[string]string{
-		"routeID": routeId,
+		"routeID": routeID,
 	}
-	resp, err := o.restyGet(GET_ROUTES_STATISTICS(deviceId), queryParams)
+	resp, err := c.get(ctx, GET_ROUTES_STATISTICS(deviceID), queryParams)
 	if err != nil {
 		return nil, err
 	}
+	c.debugResponse("statistics", resp)
 	var obj stats.ResponseRouteStatistics
-	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
+	if err := decode(resp, "GetRouteStatistics", &obj); err != nil {
 		return nil, err
 	}
 	return &obj, nil
@@ -33,18 +34,19 @@ GET /api/gateway/[Device ID]/statistics?routeID=[Route ID]&sourceID=[Source ID]
 cookie: sessionID: [Session ID]
 */
 
-func (o *haivisionSdk) GetSourceStatistics(deviceId string, routeId string, sourceId string) (*stats.ResponseSourceStatistics, error) {
-	o.debugf("GetSourceStatistics device=%s route=%s source=%s", deviceId, routeId, sourceId)
+func (c *Client) GetSourceStatistics(ctx context.Context, deviceID, routeID, sourceID string) (*stats.ResponseSourceStatistics, error) {
+	c.debugf("GetSourceStatistics device=%s route=%s source=%s", deviceID, routeID, sourceID)
 	queryParams := map[string]string{
-		"routeID":  routeId,
-		"sourceID": sourceId,
+		"routeID":  routeID,
+		"sourceID": sourceID,
 	}
-	resp, err := o.restyGet(GET_ROUTES_STATISTICS(deviceId), queryParams)
+	resp, err := c.get(ctx, GET_ROUTES_STATISTICS(deviceID), queryParams)
 	if err != nil {
 		return nil, err
 	}
+	c.debugResponse("statistics", resp)
 	var obj stats.ResponseSourceStatistics
-	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
+	if err := decode(resp, "GetSourceStatistics", &obj); err != nil {
 		return nil, err
 	}
 	return &obj, nil
@@ -64,35 +66,37 @@ cookie: sessionID: [Session ID]
 
 */
 
-func (o *haivisionSdk) GetDestinationStatisticsById(deviceId string, routeId string, destinationID string) (*stats.ResponseDestinationStatistics, error) {
-	o.debugf("GetDestinationStatisticsById device=%s route=%s destination=%s", deviceId, routeId, destinationID)
+func (c *Client) GetDestinationStatisticsById(ctx context.Context, deviceID, routeID, destinationID string) (*stats.ResponseDestinationStatistics, error) {
+	c.debugf("GetDestinationStatisticsById device=%s route=%s destination=%s", deviceID, routeID, destinationID)
 	queryParams := map[string]string{
-		"routeID":       routeId,
+		"routeID":       routeID,
 		"destinationID": destinationID,
 	}
-	resp, err := o.restyGet(GET_ROUTES_STATISTICS(deviceId), queryParams)
+	resp, err := c.get(ctx, GET_ROUTES_STATISTICS(deviceID), queryParams)
 	if err != nil {
 		return nil, err
 	}
+	c.debugResponse("statistics", resp)
 	var obj stats.ResponseDestinationStatistics
-	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
+	if err := decode(resp, "GetDestinationStatistics", &obj); err != nil {
 		return nil, err
 	}
 	return &obj, nil
 }
 
-func (o *haivisionSdk) GetDestinationStatisticsByName(deviceId string, routeId string, destinationName string) (*stats.ResponseDestinationStatistics, error) {
-	o.debugf("GetDestinationStatisticsByName device=%s route=%s destination=%s", deviceId, routeId, destinationName)
+func (c *Client) GetDestinationStatisticsByName(ctx context.Context, deviceID, routeID, destinationName string) (*stats.ResponseDestinationStatistics, error) {
+	c.debugf("GetDestinationStatisticsByName device=%s route=%s destination=%s", deviceID, routeID, destinationName)
 	queryParams := map[string]string{
-		"routeID":         routeId,
+		"routeID":         routeID,
 		"destinationName": destinationName,
 	}
-	resp, err := o.restyGet(GET_ROUTES_STATISTICS(deviceId), queryParams)
+	resp, err := c.get(ctx, GET_ROUTES_STATISTICS(deviceID), queryParams)
 	if err != nil {
 		return nil, err
 	}
+	c.debugResponse("statistics", resp)
 	var obj stats.ResponseDestinationStatistics
-	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
+	if err := decode(resp, "GetDestinationStatistics", &obj); err != nil {
 		return nil, err
 	}
 	return &obj, nil
@@ -104,21 +108,22 @@ GET /api/gateway/[Device ID]/statistics/client?routeID=[Route ID]&destinationID=
 cookie: sessionID: [Session ID]
 */
 
-func (o *haivisionSdk) GetSrtClientStatistics(deviceId string, routeId string, destinationID string, clientAddress string, clientPort string) (*stats.ResponseSrtClientStatistics, error) {
-	o.debugf("GetSrtClientStatistics device=%s route=%s destination=%s client=%s:%s", deviceId, routeId, destinationID, clientAddress, clientPort)
+func (c *Client) GetSrtClientStatistics(ctx context.Context, deviceID, routeID, destinationID, clientAddress, clientPort string) (*stats.ResponseSrtClientStatistics, error) {
+	c.debugf("GetSrtClientStatistics device=%s route=%s destination=%s client=%s:%s", deviceID, routeID, destinationID, clientAddress, clientPort)
 	queryParams := map[string]string{
-		"routeID":       routeId,
+		"routeID":       routeID,
 		"destinationID": destinationID,
 		"clientAddress": clientAddress,
 		"clientPort":    clientPort,
 	}
 	// sotto-path /statistics/client, non /statistics
-	resp, err := o.restyGet(GET_ROUTES_CLIENT_STATISTICS(deviceId), queryParams)
+	resp, err := c.get(ctx, GET_ROUTES_CLIENT_STATISTICS(deviceID), queryParams)
 	if err != nil {
 		return nil, err
 	}
+	c.debugResponse("statistics", resp)
 	var obj stats.ResponseSrtClientStatistics
-	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
+	if err := decode(resp, "GetSrtClientStatistics", &obj); err != nil {
 		return nil, err
 	}
 	return &obj, nil

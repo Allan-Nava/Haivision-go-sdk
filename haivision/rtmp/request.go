@@ -1,51 +1,33 @@
 package rtmp
 
-/*
-{
-	"action": "create",
-	"deviceID": "[Device ID]",
-	"elementType": "route",
-	"fields":
-	{
-	"name": "[Route name]",
-	"startRoute": [true,false],
-	"source":
-		{
-		<Source object>
-		},
-		"destinations": [
-		<Destination object list>
-		// destinations udp and rtp
-		// destinations srt
-		// destinations hls
-		]
-	}
-}
-*/
+// Modelli di richiesta RTMP. Vedi le note sui tipi in srt/request.go: i campi opzionali sono
+// puntatori con omitempty, `ttl`/`tos`/`mtu` sono numerici come negli esempi della doc.
 
 type RequestSourceModelRTMP struct {
-	Name             string `json:"name" required:"true" validate:"nonnil,min=1"`
-	ID               string `json:"id" required:"true" validate:"nonnil,min=1"`
-	Address          string `json:"address" required:"true" validate:"nonnil,min=1"`
-	Protocol         string `json:"protocol" required:"true" validate:"nonnil,min=1"`
-	Port             int    `json:"port" required:"true" validate:"nonnil,min=1"`
-	NetworkInterface string `json:"networkInterface" required:"true" validate:"nonnil,min=1"`
-	StreamName       string `json:"streamName" required:"true" validate:"nonnil,min=1"`
-	RtmpMode         string `json:"RtmpMode" required:"true" validate:"nonnil,min=1"`
+	Name             string `json:"name" validate:"required"`
+	ID               string `json:"id,omitempty"`
+	Address          string `json:"address" validate:"required"`
+	Protocol         string `json:"protocol" validate:"required"`
+	Port             int    `json:"port" validate:"required,min=1,max=65535"`
+	NetworkInterface string `json:"networkInterface"`
+	StreamName       string `json:"streamName" validate:"required"`
+	// RtmpMode: il campo JSON è `rtmpMode` minuscolo — fino alla v1.x era `RtmpMode`, quindi
+	// il gateway non lo riconosceva.
+	RtmpMode *string `json:"rtmpMode,omitempty"`
+	Mode     *string `json:"mode,omitempty"`
 }
 
-/*
-Use the following destinations model when issuing the Create a Route, Update a Route, and Start or Stop a Route's Destination API requests. Definition of each destination depends on the protocol.
-*/
 type RequestDestinationModelRtmp struct {
-	Name             string `json:"name" validate:"nonnil,min=1" required:"true"`
-	ID               string `json:"id" required:"true" validate:"nonnil,min=1"`
-	Address          string `json:"address" required:"true" validate:"nonnil,min=1"`
-	Protocol         string `json:"protocol" required:"true" validate:"nonnil,min=1"`
-	Port             int    `json:"port" required:"true" validate:"nonnil,min=1"`
-	NetworkInterface string `json:"networkInterface" required:"true" validate:"nonnil,min=1"`
-	RetainHeader     string `json:"retainHeader" required:"true" validate:"nonnil,min=1"`
-	Action           string `json:"action" required:"true" validate:"nonnil,min=1"`
-	Ttl              string `json:"ttl" required:"true" validate:"nonnil,min=1"`
-	Tos              string `json:"tos" required:"true" validate:"nonnil,min=1"`
+	Name             string  `json:"name" validate:"required"`
+	ID               string  `json:"id,omitempty"`
+	Address          string  `json:"address" validate:"required"`
+	Protocol         string  `json:"protocol" validate:"required"`
+	Port             int     `json:"port" validate:"required,min=1,max=65535"`
+	NetworkInterface string  `json:"networkInterface"`
+	StreamName       *string `json:"streamName,omitempty"`
+	Action           *string `json:"action,omitempty"`
+	Ttl              *int    `json:"ttl,omitempty"`
+	Tos              *int    `json:"tos,omitempty"`
+	Mtu              *int    `json:"mtu,omitempty"`
+	RetainHeader     *bool   `json:"retainHeader,omitempty"`
 }

@@ -8,7 +8,7 @@ The Haivision Go SDK is a software development kit for interacting with Haivisio
 
 ## Installation
 
-Serve **Go 1.18 o superiore**: l'SDK usa i generics (`route.RouteModel[TS, TD]`).
+Serve **Go 1.25 o superiore**.
 
 ```bash
 go get github.com/Allan-Nava/Haivision-go-sdk
@@ -27,89 +27,152 @@ Il package importabile è **`.../haivision`**: la root del modulo non contiene f
 package main
 
 import (
+	"context"
+	"errors"
 	"log"
+	"time"
 
 	"github.com/Allan-Nava/Haivision-go-sdk/haivision"
+	"github.com/Allan-Nava/Haivision-go-sdk/haivision/route"
+	"github.com/Allan-Nava/Haivision-go-sdk/haivision/srt"
 )
 
 func main() {
-	// BuildHaivision apre la sessione: fa POST /api/session + GET /api/devices.
-	// insecure: nil o &false ⇒ certificato TLS verificato; &true ⇒ verifica disabilitata.
-	client, err := haivision.BuildHaivision(
-		"https://gateway.example.com",
-		false,          // debug (con true, credenziali e sessionID sono mascherati nei log)
-		"haiadmin", "password",
-		nil,            // *HeaderConfigurator: header custom / Basic auth di un proxy davanti al gateway
-		nil,            // insecure
-	)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+
+	// New non apre connessioni: valida la configurazione e prepara il client HTTP.
+	// Dial = New + Connect, quando non serve separare i due passi.
+	client, err := haivision.Dial(ctx, haivision.Config{
+		URL:      "https://gateway.example.com",
+		Username: "haiadmin",
+		Password: "password",
+		Timeout:  30 * time.Second, // zero ⇒ haivision.DefaultTimeout
+		// Insecure: true,          // solo per certificati self-signed
+		// Debug:    true,          // credenziali e sessionID mascherati nei log
+	})
 	if err != nil {
 		log.Fatalf("connessione al gateway: %v", err)
 	}
-
-	if err := client.HealthCheck(); err != nil {
-		log.Fatalf("gateway non raggiungibile o sessione scaduta: %v", err)
-	}
+	defer client.Logout(ctx)
 
 	deviceID := client.GetDeviceID() // primo device restituito da /api/devices
 
-	stats, err := client.GetRouteStatistics(deviceID, "<route-id>")
-	if err != nil {
-		log.Fatalf("statistiche: %v", err)
+	// --- creare una route SRT ---
+	fields := route.RouteFields[srt.RequestSourceModelSRT, srt.RequestDestinationModelSrt]{
+		Name:       "evento-live",
+		StartRoute: haivision.Bool(true),
+		Source: srt.RequestSourceModelSRT{
+			Name: "ingresso", Address: "0.0.0.0", Protocol: "srt", Port: 2000,
+		},
+		Destinations: []srt.RequestDestinationModelSrt{{
+			Name: "uscita", Address: "10.0.0.9", Protocol: "srt", Port: 2001,
+			Ttl: haivision.Int(64), // i campi opzionali non impostati vengono OMESSI dal body
+		}},
 	}
-	log.Printf("route %s: stato %s, bitrate %v Mbit/s",
-		stats.Route.Name, stats.Route.State, stats.Route.Source.Bitrate)
+	if _, err := haivision.CreateRoute(ctx, client, deviceID, fields); err != nil {
+		log.Fatalf("creazione route: %v", err)
+	}
+
+	// --- elencare le route, tipizzate per protocollo ---
+	routes, err := haivision.GetRoutes[srt.ResponseSourceSrt, srt.ResponseDestinationSrt](
+		ctx, client, deviceID)
+	if err != nil {
+		log.Fatalf("lettura route: %v", err)
+	}
+	for _, r := range routes.Data {
+		log.Printf("route %s (%s): %s", r.Name, r.ID, r.State)
+	}
+
+	// --- avviare una route ---
+	// i comandi del gateway sono ASINCRONI: `pending` significa accodato, non partito
+	cmds, err := client.StartRoute(ctx, deviceID, routes.Data[0].ID)
+	if err != nil {
+		log.Fatalf("start route: %v", err)
+	}
+	if cmds.Pending() {
+		log.Println("comando accodato, la route non è ancora partita")
+	}
+
+	// --- statistiche ---
+	st, err := client.GetRouteStatistics(ctx, deviceID, routes.Data[0].ID)
+	if err != nil {
+		var apiErr *haivision.APIError
+		if errors.As(err, &apiErr) && apiErr.IsUnauthorized() {
+			// la sessione del gateway scade e l'SDK non la rinnova: riconnettiti
+			if err := client.Connect(ctx); err != nil {
+				log.Fatalf("riconnessione: %v", err)
+			}
+		} else {
+			log.Fatalf("statistiche: %v", err)
+		}
+	} else {
+		log.Printf("bitrate %.2f Mbit/s", st.Route.Source.Bitrate)
+	}
 }
 ```
 
 ### Gestione degli errori
 
-Ogni risposta HTTP di errore del gateway diventa un `*haivision.APIError`:
+L'SDK restituisce tre tipi di errore, tutti verificabili con `errors.As` / `errors.Is`:
 
-```go
-var apiErr *haivision.APIError
-if errors.As(err, &apiErr) {
-	if apiErr.IsUnauthorized() {
-		// 401/403: sessione scaduta (il gateway la fa scadere e l'SDK non la rinnova)
-		// oppure credenziali/ruolo insufficienti → ricostruisci il client
-	}
-	log.Printf("%s %s: %d — %s", apiErr.Method, apiErr.URL, apiErr.StatusCode, apiErr.Body)
-}
-```
+| Tipo | Significato |
+|---|---|
+| `*haivision.APIError` | Il gateway ha risposto con uno status >= 400. `IsUnauthorized()` (401/403) di norma vuol dire **sessione scaduta**: richiama `Connect`. `IsNotFound()` per i 404. |
+| `*haivision.ValidationError` | Il corpo della richiesta non è valido: **la richiesta non è stata inviata**. |
+| `*haivision.DecodeError` | Il gateway ha risposto 2xx con un body che non corrisponde al modello (es. la pagina HTML di un proxy). |
 
-`haivision.ErrNoDevices` segnala che `GET /api/devices` ha risposto con una lista vuota.
+Errori sentinella: `haivision.ErrInvalidConfig`, `haivision.ErrNoDevices`.
 
 ## API disponibili
 
-| Area | Metodi |
+| Area | Come |
 |---|---|
-| Sessione | `InitSession`, `GetSessionInfo`, `HealthCheck` |
-| Device | `GetDeviceInfo`, `GetDeviceID`, `GetHType` |
-| Route | `GetRoutes`, `GetRouteConfiguration`, `CreateRouteSrt`/`Rtmp`/`Rtsp`/`UdpRtp`, `StartOrStopRoute` |
+| Connessione | `New`, `Dial`, `Connect`, `HealthCheck`, `Logout` |
+| Sessione e device | `InitSession`, `GetSessionInfo`, `GetDeviceInfo`, `GetDeviceID`, `GetHType` |
+| Route (lettura) | `GetRoutes[TS,TD]`, `GetRouteConfiguration[TS,TD]`, `GetRoutesRaw`, `GetRouteConfigurationRaw` |
+| Route (scrittura) | `CreateRoute[TS,TD]`, `UpdateRoute[TS,TD]`, `DeleteRoute`, `StartRoute`, `StopRoute`, `StartOrStopRoute`, `StartOrStopDestination[TS,TD]` |
 | Statistiche | `GetRouteStatistics`, `GetSourceStatistics`, `GetDestinationStatisticsById`/`ByName`, `GetSrtClientStatistics` |
 
-### ⚠️ Limitazioni note in v1.x
+Le operazioni che dipendono dal protocollo sono **funzioni generiche**, non metodi: in Go i metodi
+non possono avere type parameter, e metterle sull'interfaccia richiederebbe quattro varianti per
+ognuna (SRT, RTMP, RTSP, UDP/RTP). Il resto sono metodi su `*Client`, esposti anche
+dall'interfaccia `IHaivisionClient` per chi vuole mockarli.
 
-- **`CreateRoute*` non funziona ancora contro il gateway**: invia il modello di risposta invece del body documentato (manca il wrapper `action`/`deviceID`/`elementType`/`fields`).
-- **`StartOrStopRoute` colpisce l'endpoint giusto ma non deserializza la risposta**: l'API risponde con un array top-level, il tipo di ritorno è una struct.
-- **Le statistiche con valori frazionari falliscono**: `bitrate`/`sendRate`/`usedBandwidth` sono documentati in Mbit/s ma tipizzati `int`.
-- Nessun `context.Context` e nessun timeout: le chiamate non sono cancellabili.
-- Mancano update/delete di una route e la gestione delle singole destinazioni.
+### Cose da sapere sul gateway
 
-Sono tutti cambiamenti **breaking**, pianificati in **v2.0.0**: vedi la [roadmap](docs/roadmap.md) e il [backlog](docs/backlog.md).
+- **La sessione scade** e l'SDK non la rinnova: guarda `ExpireAt` di `GetSessionInfo`, oppure
+  intercetta `APIError.IsUnauthorized()` e richiama `Connect`.
+- **`UpdateRoute` sostituisce, non modifica**: le destinazioni che ometti vengono rimosse. Per
+  cambiarne una sola, rileggi la route con `GetRouteConfiguration` e rimanda l'elenco completo.
+- **Avviare/fermare una singola destinazione** non ha un endpoint dedicato: è una update con
+  `Action` valorizzata su quella destinazione. Ci pensa `StartOrStopDestination`.
+- **`DeviceID` viene dal primo device** restituito da `/api/devices`: in un setup multi-device
+  passa il `deviceID` esplicito ai metodi.
+- **I campi opzionali sono puntatori**: non impostati vengono **omessi** dal body, non inviati a
+  zero. Helper: `haivision.Bool`, `haivision.Int`, `haivision.String`.
 
-## Sviluppo
+## Migrazione da v1.x a v2.0.0
 
-```bash
-make help          # elenco dei target
-make check         # gofmt + vet + build + test + backlog-lint + roadmap-check
-make cover         # copertura per package
-make release-dry   # mostra quale release verrebbe tagliata dal backlog
-```
+La v2.0.0 è una release **breaking**: la v1.x non poteva funzionare per create-route e
+start/stop (vedi il [CHANGELOG](CHANGELOG.md)), e sistemarlo richiedeva cambiare firme e tipi.
 
-I todo stanno **solo** in [`docs/backlog.md`](docs/backlog.md) (sorgente unica): da lì si generano la
-[roadmap per milestone di versione](docs/roadmap.md) e le sezioni del [CHANGELOG](CHANGELOG.md).
-Le release si tagliano con `make release`, che deriva la versione dal backlog. Convenzioni per gli
-agent AI: [`AGENTS.md`](AGENTS.md) / [`CLAUDE.md`](CLAUDE.md).
+| v1.x | v2.0.0 |
+|---|---|
+| `BuildHaivision(url, debug, user, pass, header, insecure)` | `haivision.Dial(ctx, haivision.Config{...})` — oppure `New` + `Connect` per separare costruzione e I/O |
+| `insecure *bool` (dove `&false` **disabilitava** il TLS) | `Config.Insecure bool` |
+| `header *HeaderConfigurator` | `Config.Headers map[string]string` (`HeaderConfigurator.GetHeaders()` per riusarlo) |
+| `client.GetRouteStatistics(dev, route)` | `client.GetRouteStatistics(ctx, dev, route)` — **tutti** i metodi accettano un `context.Context` come primo parametro |
+| `client.CreateRouteSrt(dev, *route.RouteModel[...])` | `haivision.CreateRoute(ctx, client, dev, route.RouteFields[...])` |
+| `client.GetRoutes(dev) (*resty.Response, error)` | `haivision.GetRoutes[TS,TD](ctx, client, dev)` tipizzata, o `client.GetRoutesRaw(ctx, dev)` |
+| `route.ResponseStartOrRoute` (struct) | `route.ResponseRouteCommand` (slice, con `.Pending()`) |
+| `route.RouteModel[TS,TD]` come corpo di richiesta | `route.RouteFields[TS,TD]`; `ResponseRouteModel[TS,TD]` è la forma di risposta |
+| statistiche `int` | statistiche `float64` (i valori sono Mbit/s frazionari) |
+| `ttl`/`tos`/`mtu` `string`, `shaping`/`maxBitrate` `*string` | `*int` / `*bool`, come negli esempi della doc |
+| `ROUTE_COMMMAND` (tre M) | `ROUTE_COMMANDS`, con `POST_ROUTE_COMMAND` |
+| campi obbligatori: tutti | solo quelli che il gateway richiede davvero; gli opzionali sono puntatori omessi se nil |
+| `gopkg.in/validator.v2` | `go-playground/validator/v10` (errori come `*ValidationError`) |
+| Go 1.18+ | **Go 1.25+** |
 
 ### Support
 If you have any issues or need assistance using the Haivision Go SDK, please contact the developer at allan.nava@hiway.media or visit the project's issue tracker at https://github.com/Allan-Nava/Haivision-go-sdk/issues

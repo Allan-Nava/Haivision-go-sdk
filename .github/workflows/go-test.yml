@@ -15,7 +15,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go-version: [ '1.18.x', '1.23.x', '1.24.x', '1.25.x' ]
+        # go.mod richiede go 1.25.0 (x/net con il fix HTTP/2 e validator/v10 lo impongono):
+        # versioni precedenti non compilano affatto. Aggiungere 1.26.x quando esce.
+        go-version: [ '1.25.x' ]
     #
     steps:
       - uses: actions/checkout@v4

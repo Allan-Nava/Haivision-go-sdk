@@ -17,10 +17,107 @@ Il formato segue [Keep a Changelog](https://keepachangelog.com/it/1.1.0/) e il p
 Il lavoro pianificato è in [`docs/roadmap.md`](docs/roadmap.md). Tabella aggiornata da `make release`:
 
 <!-- MILESTONE-TABLE:START -->
-| Versione | Contenuto | Bump | Stato |
-|---|---|---|---|
-| `v2.0.0` | Contratto API allineato e superficie pulita | major | 10 item open |
+_Nessuna milestone pendente: tutto il backlog pianificato è rilasciato._
 <!-- MILESTONE-TABLE:END -->
+
+## [2.0.0] — 2026-08-10
+
+_Contratto API allineato e superficie pulita._
+
+💥 **Release breaking: il codice dei consumer va adeguato.** La guida di migrazione tabellare è nel
+[README](README.md#migrazione-da-v1x-a-v200). Il motivo per cui è necessaria: nella v1.x
+**create-route non poteva funzionare** (veniva inviato il modello di risposta invece del body
+documentato) e **start/stop non deserializzava la risposta** (l'API risponde con un array, il tipo
+era una struct). Sistemarlo richiedeva cambiare firme e tipi esportati, quindi tutti i breaking
+sono stati raccolti in questa singola major invece di essere spalmati su più release.
+
+⚠️ **Richiede Go 1.25+** (era 1.18).
+
+### Changed (breaking)
+
+- **Costruttore**: `BuildHaivision(url, debug, user, pass, header, insecure)` → `Config` +
+  **`New`** (nessun I/O di rete) e **`Connect`** (le due chiamate HTTP), più **`Dial`** = New+Connect.
+  Ora è possibile testare la costruzione senza rete e distinguere "configurazione sbagliata" da
+  "gateway giù". `Config.Insecure` è un `bool`: il bug del `*bool` non letto della v1.0.0 **non è
+  più esprimibile**. `Config.validate()` rifiuta URL senza schema/host, credenziali mancanti e
+  timeout negativi con `ErrInvalidConfig`.
+- **`context.Context` come primo parametro di tutti i metodi e le funzioni**, propagato a resty.
+  Aggiunto `Config.Timeout` (default `DefaultTimeout` = 30s): nella v1.x una chiamata verso un
+  gateway irraggiungibile poteva restare appesa indefinitamente e non era cancellabile.
+- **`CreateRoute` è una funzione generica** e costruisce il body documentato dai soli campi della
+  route: `haivision.CreateRoute(ctx, client, deviceID, fields)`. Nuovo tipo `route.RouteFields[TS,TD]`
+  per il corpo delle richieste, distinto da `route.ResponseRouteModel[TS,TD]` che porta i campi di
+  stato. Le quattro `CreateRouteSrt`/`Rtmp`/`Rtsp`/`UdpRtp` non esistono più.
+- **`GetRoutes` e `GetRouteConfiguration` sono generiche e tipizzate**: `*resty.Response` non è più
+  esposto nell'API pubblica. Gli accessi grezzi restano come `GetRoutesRaw` /
+  `GetRouteConfigurationRaw`, che tornano `json.RawMessage`.
+- **`route.ResponseStartOrRoute` → `route.ResponseRouteCommand`**, che è uno **slice**: l'API
+  risponde con un array top-level. Tipi interni estratti in `RouteCommand` e `CommandParameters`.
+  `Result` è `json.RawMessage` perché la doc lo mostra a `null` ma può essere un oggetto.
+- **Statistiche: 58 campi da `int` a `float64`.** La doc li dà come `number` in Mbit/s, quindi
+  frazionari: con `int` un solo valore come 4.5 faceva fallire l'**intera** chiamata. Anche i
+  contatori, perché JSON non distingue `42` da `42.0`. Restano `int` solo `port` e `localPort`.
+- **Tipi dei campi di richiesta allineati alla doc**: `ttl`/`tos`/`mtu` sono `*int`, `shaping` è
+  `*bool`, `maxBitrate` è `*int` (erano `string`/`*string`). I campi opzionali sono ora **puntatori
+  con `omitempty`**: non impostati vengono **omessi** dal body invece di essere inviati a zero, che
+  il gateway interpreterebbe come valore voluto. Helper `haivision.Bool`/`Int`/`String`.
+- **Validazione**: da `gopkg.in/validator.v2` (non manutenuto) a `go-playground/validator/v10`.
+  Obbligatori solo i campi che il gateway richiede davvero: nella v1.x `ttl`/`tos`/`retainHeader`
+  erano `string` obbligatorie, quindi una route SRT che non le specificava veniva **rifiutata dal
+  client** prima di partire. Gli errori sono `*ValidationError`.
+- **Rinomine**: `ROUTE_COMMMAND` (tre M) → `ROUTE_COMMANDS`, più `ROUTE_UPDATES` e
+  `POST_ROUTE_UPDATES` che rendono espliciti i due endpoint distinti;
+  `PrompegFeclsBlockAligned` → `PrompegFecIsBlockAligned`.
+- `GetDeviceInfo` restituisce `[]device.ResponseDeviceInfo` invece di `*[]...`.
+- Direttiva `go` 1.18 → **1.25.0**; matrice CI ridotta a `1.25.x`.
+
+### Added
+
+- **`UpdateRoute[TS,TD]`, `DeleteRoute`, `StartRoute`, `StopRoute`,
+  `StartOrStopDestination[TS,TD]`, `Logout`.** I payload sono stati estratti dal PDF della doc in
+  `docs/`, non indovinati: la update ha `elementID` e non ha `startRoute`, la delete non ha `fields`.
+- **`ResponseRouteCommand.Pending()`**: i comandi del gateway sono **asincroni**, `state: pending`
+  significa accodato e non eseguito. Prima non c'era modo di accorgersene.
+- **`*DecodeError`**: il gateway ha risposto 2xx con un body che non corrisponde al modello (es. la
+  pagina HTML di un proxy). Porta l'etichetta della chiamata, perché un "cannot unmarshal" nudo non
+  dice quale endpoint ha risposto male.
+- `Config.Logger` per dirottare i log di debug, `ErrInvalidConfig`, `ErrNotConnected`,
+  `route.ActionCreate`/`ActionUpdate`/`ActionDelete`, `route.DestinationActionStart`/`Stop`.
+- `Connect` è **rieseguibile**: dopo una sessione scaduta (`APIError.IsUnauthorized()`) basta
+  richiamarla. Rifiuta un 2xx senza `sessionID`.
+
+### Fixed
+
+- **`CreateRoute*` non poteva funzionare**: il body non conteneva `action`, `deviceID`,
+  `elementType` né il wrapper `fields`. Ora è verificato ispezionando il body che lo stub riceve
+  davvero, e che nessun campo di stato della risposta finisca nella richiesta.
+- **La risposta di start/stop route non era deserializzabile**: `cannot unmarshal array into Go
+  value`. I due test di caratterizzazione `TestKnownBug_*` della v1.1.0 sono stati **invertiti** in
+  test che asseriscono il comportamento corretto, come previsto quando furono scritti.
+- **`rtmpMode` era serializzato come `RtmpMode`** (maiuscolo) nella source RTMP: il gateway non lo
+  riconosceva.
+
+### Security
+
+- `golang.org/x/net` v0.35.0 → **v0.57.0**: `govulncheck` non segnala più **nessuna** vulnerabilità
+  in `x/net` (GO-2026-4918 inclusa), e le vulnerabilità nei moduli richiesti scendono da 22 a 9.
+  Era il bump rinviato dalla v1.1.0 perché richiedeva `go 1.25`. Resty v2.14.0 → **v2.17.2**.
+- Le 22 vulnerabilità stdlib che `govulncheck` continua a segnalare dipendono dal **toolchain** con
+  cui si compila (serve go ≥ 1.25.12), non da `go.mod`: non c'è niente da correggere nel repo.
+
+### Test
+
+- Copertura di `./haivision/...` da 67,2% a **81,3%** (74 test, tutti offline e deterministici).
+- Nuovi: body reale di create/update/delete, `StartOrStopDestination`, validazione che rifiuta prima
+  della rete, route minimale senza campi opzionali, `Logout`, cancellazione via context, timeout,
+  validazione di `Config`, `New` che non apre connessioni, `Connect` rieseguibile, tipi dei campi
+  contro l'esempio della doc.
+
+### Note per chi aggiorna
+
+Se hai bisogno di restare su Go < 1.25, la **v1.2.0** resta disponibile e riceve i fix di
+correttezza della v1.1.0 — ma non quelli di create-route e start/stop, che sono breaking per
+costruzione.
 
 ## [1.2.0] — 2026-08-10
 
