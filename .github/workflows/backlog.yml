@@ -1,0 +1,45 @@
+name: Backlog & roadmap
+#
+# Gate sul backlog: struttura degli item, vocabolario dei metadati e — la regola che conta —
+# coerenza del versionamento (una milestone non può pianificare un item `major` restando una
+# minor). Verifica anche che docs/roadmap.md, che è GENERATA e committata, sia in pari con
+# docs/backlog.md. Solo stdlib Python: nessuna dipendenza da installare.
+#
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'docs/backlog.md'
+      - 'docs/roadmap.md'
+      - 'scripts/**'
+      - '.github/workflows/backlog.yml'
+  pull_request:
+    paths:
+      - 'docs/backlog.md'
+      - 'docs/roadmap.md'
+      - 'scripts/**'
+      - '.github/workflows/backlog.yml'
+#
+jobs:
+  backlog:
+    runs-on: ubuntu-latest
+    steps:
+      # fetch-depth: 0 + i tag: la baseline della catena di versioni è il max tag `vX.Y.Z`
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      #
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      #
+      - name: Lint backlog (struttura + catena semver)
+        run: python3 scripts/backlog-lint.py
+      #
+      - name: Roadmap in pari col backlog
+        run: python3 scripts/generate-roadmap.py --check
+      #
+    #
+  #
+#
