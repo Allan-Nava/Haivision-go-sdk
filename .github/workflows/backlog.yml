@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # fetch-depth: 0 + i tag: la baseline della catena di versioni è il max tag `vX.Y.Z`
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       #
