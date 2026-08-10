@@ -3,7 +3,7 @@ module github.com/Allan-Nava/Haivision-go-sdk
 go 1.18
 
 require (
-	github.com/go-resty/resty/v2 v2.7.0
+	github.com/go-resty/resty/v2 v2.14.0
 	gopkg.in/validator.v2 v2.0.1
 )
 

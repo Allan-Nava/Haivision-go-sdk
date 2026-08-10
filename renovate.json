@@ -1,6 +1,9 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:base"
+  "enabled": false,
+  "description": [
+    "Renovate è DISABILITATO: questo repo usa Dependabot (.github/dependabot.yml).",
+    "Avere entrambi attivi significa due bot che aprono PR concorrenti sullo stesso go.mod.",
+    "Per tornare a Renovate: enabled=true qui e rimuovi l'ecosystem gomod da dependabot.yml."
   ]
 }

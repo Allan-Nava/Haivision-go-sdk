@@ -1,48 +1,66 @@
 name: Release on Tag
 #
+# Crea la GitHub Release quando viene pushato un tag vX.Y.Z. Il corpo è la sezione **rifinita a
+# mano** di CHANGELOG.md, estratta da scripts/changelog-extract.py.
+#
+# Nota sul flusso: il tag lo crea `make release` in locale (versione derivata da docs/backlog.md)
+# e lo pusha SEMPRE una persona. Questo workflow non decide niente: pubblica quello che il tag
+# porta con sé.
+#
 on:
   push:
     tags:
       - 'v*.*.*'
-env:
-  APP_ENV: runner
+#
+# Prima era `permissions: write-all`: per creare una release basta `contents: write`.
+permissions:
+  contents: write
 #
 jobs:
   tagged-release:
     name: "Tagged Release"
-    runs-on: "ubuntu-latest"
-    permissions: write-all
+    runs-on: ubuntu-latest
     #
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-      #
-      - name: Add ffmpeg dependency
-        uses: FedericoCarboni/setup-ffmpeg@v2
-        id: setup-ffmpeg
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       #
       - name: Setup Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: 1.19
+          go-version: '1.25.x'
+          cache: true
+          cache-dependency-path: go.sum
       #
+      # Un tag non deve poter pubblicare codice che non compila o che ha test rossi, anche se
+      # `make release` li ha già eseguiti in locale: qui il controllo è indipendente.
       - name: Build
         run: go build -v ./...
       #
-      - name: Test with the Go CLI
-        run: go test -v ./...
+      - name: Test
+        run: go test -v -race ./...
       #
+      - name: Estrai la sezione di CHANGELOG del tag
+        id: notes
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          if ! python3 scripts/changelog-extract.py "$tag" > release-notes.md; then
+            echo "::warning::nessuna sezione [$tag] in CHANGELOG.md, uso un corpo minimo"
+            printf 'Release %s.\n\nVedi CHANGELOG.md e docs/roadmap.md.\n' "${tag#v}" > release-notes.md
+          fi
+          echo "--- corpo della release ---"; cat release-notes.md
+      #
+      # actions/create-release@v1 è archiviata dal 2021: sostituita da softprops/action-gh-release.
       - name: Create release
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          name: "Release ${{ github.ref_name }}"
+          body_path: release-notes.md
           draft: false
-          prerelease: false
-      #
+          # una versione con suffisso (v2.0.0-rc.1) è pubblicata come prerelease
+          prerelease: ${{ contains(github.ref_name, '-') }}
     #
   #
 #

@@ -11,25 +11,25 @@ permalink: /roadmap
 <!-- GENERATO da scripts/generate-roadmap.py — NON editare a mano. -->
 > ⚙️ Pagina **generata** da [`scripts/generate-roadmap.py`](https://github.com/Allan-Nava/Haivision-go-sdk/blob/main/scripts/generate-roadmap.py) leggendo [`docs/backlog.md`](backlog.md) (unica sorgente). Rigenerala con `make roadmap`; `make roadmap-check` è il gate in CI.
 
-_Baseline rilasciata: **v1.1.0** · 3 milestone · 33 item pianificati (19 open · 14 done)._
+_Baseline rilasciata: **v1.2.0** · 3 milestone · 33 item pianificati (10 open · 23 done)._
 
 ## Prossima release
 
-**v1.2.0 — Qualità, CI, documentazione** — 9 item da chiudere (0 già fatti). `minor` bump rispetto a **v1.1.0** (minimo imposto dagli item: `patch`).
+**v2.0.0 — Contratto API allineato e superficie pulita** — 10 item da chiudere (0 già fatti). `major` bump rispetto a **v1.2.0** (minimo imposto dagli item: `major`).
 
 ```
-  v1.1.0 (rilasciata)
-     │   v1.2.0    [░░░░░░░░░░░░░░░░] 0/9   patch  ◀── PROSSIMA
-     │   v2.0.0    [░░░░░░░░░░░░░░░░] 0/10  major
+  v1.2.0 (rilasciata)
+     │   v2.0.0    [░░░░░░░░░░░░░░░░] 0/10  major  ◀── PROSSIMA
      ▼
 ```
 
-Blocker `high` di v1.2.0:
+Blocker `high` di v2.0.0:
 
 | id | Titolo | Impatto | Priorità |
 |----|--------|---------|----------|
-| `httptest-client-coverage` | copertura del package `haivision`: 0% | 🔧 patch | high |
-| `readme-import-path-go-version` | il README documenta un import che non compila | 🔧 patch | high |
+| `create-route-request-model` | `CreateRoute*` invia il modello di risposta, non la richiesta | 💥 major | high |
+| `startstop-response-slice` | `ResponseStartOrRoute` non deserializza la risposta reale | 💥 major | high |
+| `stats-float64` | bitrate e rate in Mbit/s tipizzati `int`: ogni valore frazionario rompe la chiamata | 💥 major | high |
 
 ## v1.1.0 — Correttezza client, sicurezza, wire fix
 
@@ -54,19 +54,19 @@ _🏷️ **rilasciata** (tag v1.1.0) · impatto: **minor** · 14 item_
 
 ## v1.2.0 — Qualità, CI, documentazione
 
-_minor bump da v1.1.0 · impatto richiesto dagli item: **patch** · 🟢 9 open · 0 done_
+_🏷️ **rilasciata** (tag v1.2.0) · impatto: **patch** · 9 item_
 
 | id | Titolo | Impatto | Priorità | Status |
 |----|--------|---------|----------|--------|
-| `httptest-client-coverage` | copertura del package `haivision`: 0% | 🔧 patch | high | 🟢 open |
-| `readme-import-path-go-version` | il README documenta un import che non compila | 🔧 patch | high | 🟢 open |
-| `changelog-bootstrap` | nessun CHANGELOG nonostante 30+ tag e release automatiche | 🔧 patch | medium | 🟢 open |
-| `ci-go-matrix-and-actions` | matrice Go 1.18–1.21 (tutte EOL) e action obsolete | 🔧 patch | medium | 🟢 open |
-| `ci-quality-gates` | la CI non ha gate su formato, lint, vulnerabilità, backlog | 🔧 patch | medium | 🟢 open |
-| `deps-resty-bump` | resty v2.7.0 è del 2022 | 🔧 patch | medium | 🟢 open |
-| `tag-autorelease-modernize` | release workflow su action archiviata e permessi eccessivi | 🔧 patch | medium | 🟢 open |
-| `dead-code-and-stubs-cleanup` | blocchi commentati e file stub vuoti | 🔧 patch | low | 🟢 open |
-| `dependabot-tests-dir` | entry dependabot su una directory che non esiste | 🔧 patch | low | 🟢 open |
+| `httptest-client-coverage` | copertura del package `haivision`: 0% | 🔧 patch | high | ✅ done |
+| `readme-import-path-go-version` | il README documenta un import che non compila | 🔧 patch | high | ✅ done |
+| `changelog-bootstrap` | nessun CHANGELOG nonostante 30+ tag e release automatiche | 🔧 patch | medium | ✅ done |
+| `ci-go-matrix-and-actions` | matrice Go 1.18–1.21 (tutte EOL) e action obsolete | 🔧 patch | medium | ✅ done |
+| `ci-quality-gates` | la CI non ha gate su formato, lint, vulnerabilità, backlog | 🔧 patch | medium | ✅ done |
+| `deps-resty-bump` | resty v2.7.0 è del 2022 | 🔧 patch | medium | ✅ done |
+| `tag-autorelease-modernize` | release workflow su action archiviata e permessi eccessivi | 🔧 patch | medium | ✅ done |
+| `dead-code-and-stubs-cleanup` | blocchi commentati e file stub vuoti | 🔧 patch | low | ✅ done |
+| `dependabot-tests-dir` | entry dependabot su una directory che non esiste | 🔧 patch | low | ✅ done |
 
 ## v2.0.0 — Contratto API allineato e superficie pulita
 

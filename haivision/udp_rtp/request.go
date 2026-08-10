@@ -22,17 +22,6 @@ package udprtp
 		   }
 	}*/
 //
-/*type RequestUdpRtpCreateRoute struct {
-	Action      string `json:"action" required:"true" validate:"nonnil,min=1"`
-	DeviceID    string `json:"deviceID" required:"true" validate:"nonnil,min=1"`
-	ElementType string `json:"elementType" required:"true" validate:"nonnil,min=1"`
-	Fields      struct {
-		Name         string                          `json:"name" required:"true" validate:"nonnil,min=1"`
-		StartRoute   bool                            `json:"startRoute" required:"true" validate:"nonnil,min=1"`
-		Source       RequestSourceModelUdpRtp        `json:"source" required:"true"`
-		Destinations []RequestDestinationModelUdpRtp `json:"destinations" required:"true"`
-	}
-}*/
 
 type RequestSourceModelUdpRtp struct {
 	Name             string `json:"name" validate:"nonnil,min=1" required:"true"`

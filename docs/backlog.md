@@ -336,12 +336,14 @@ Due difetti trovati durante la messa in opera, entrambi corretti:
 
 ### `httptest-client-coverage` — copertura del package `haivision`: 0%
 
-- **status**: open
+- **status**: done
 - **priority**: high
 - **impact**: patch
 - **labels**: testing, audit-p2
 - **milestone**: v1.2.0 — Qualità, CI, documentazione
 - **ref**: [audit §C](audit-2026-08-10.md)
+
+✅ **FATTO in v1.2.0** — copertura di `./haivision/...` da **37,9% a 67,2%** (43 test, tutti offline). Aggiunto `test/client_stats_test.go`: tutte le statistiche con verifica di path e query param, `GetRoutes`/`GetRouteConfiguration`, `GetSessionInfo`/`GetDeviceInfo`, i getter, 404 → `IsNotFound()`, body HTML non-JSON, gateway irraggiungibile. Lo stub ora ha anche una variante **HTTPS con certificato self-signed** (`newTLSGatewayStub`), che verifica *comportamentalmente* il fix di `insecure-flag-inverted`: con `&false` e `nil` la connessione viene rifiutata, con `&true` accettata. Soglia di copertura al 60% ora imposta in CI.
 
 Coprire i metodi HTTP con `httptest.Server` + `BuildHaivision` puntato su quello — mai un gateway reale.
 
@@ -357,12 +359,14 @@ Obiettivo: ≥70% su `./haivision/...` con un gate di coverage in CI.
 
 ### `readme-import-path-go-version` — il README documenta un import che non compila
 
-- **status**: open
+- **status**: done
 - **priority**: high
 - **impact**: patch
 - **labels**: docs, dx, audit-p2
 - **milestone**: v1.2.0 — Qualità, CI, documentazione
 - **ref**: [audit §D](audit-2026-08-10.md)
+
+✅ **FATTO in v1.2.0** — README e `docs/index.md`: import path corretto (`.../haivision`), requisito Go 1.18+, rimosse le funzionalità mai esistite («stop stream», «play stream»). Aggiunti un **esempio completo e compilabile**, la sezione sulla gestione degli errori (`APIError`, `ErrNoDevices`), la tabella delle API realmente disponibili e una sezione **«Limitazioni note in v1.x»** che dichiara che `CreateRoute*` non funziona ancora. L'esempio è stato verificato compilando un modulo separato con `replace` sul path locale.
 
 `import "github.com/Allan-Nava/Haivision-go-sdk"` non compila: la root del modulo non ha file Go, il
 package è `.../haivision`. Il README dichiara anche "Go 1.13 or later" mentre il codice usa generics
@@ -371,12 +375,14 @@ package è `.../haivision`. Il README dichiara anche "Go 1.13 or later" mentre i
 
 ### `ci-quality-gates` — la CI non ha gate su formato, lint, vulnerabilità, backlog
 
-- **status**: open
+- **status**: done
 - **priority**: medium
 - **impact**: patch
 - **labels**: ci, tooling, audit-p2
 - **milestone**: v1.2.0 — Qualità, CI, documentazione
 - **ref**: [audit §D](audit-2026-08-10.md)
+
+✅ **FATTO in v1.2.0** — nuovo `.github/workflows/quality.yml`: `gofmt -l` (blocca), `go vet`, `staticcheck` e `govulncheck`. `govulncheck` è **informativo** (`continue-on-error`) di proposito: segnala anche le vulnerabilità della stdlib del toolchain, che si chiudono aggiornando Go e non toccando `go.mod`, quindi bloccare la build renderebbe il gate ingestibile. Aggiunto un job `coverage` con **soglia minima al 60%** su `./haivision/...`. Il gate sul backlog era già in `backlog.yml`.
 
 Oggi la CI fa solo `go build` + `go test`. Aggiungere: `gofmt -l` (fallisce se non vuoto), `go vet`,
 `staticcheck`, `govulncheck`, `backlog-lint.py` e `generate-roadmap.py --check` — quest'ultimo perché la
@@ -385,12 +391,14 @@ in `.github/workflows/backlog.yml`; restano quelli Go.
 
 ### `ci-go-matrix-and-actions` — matrice Go 1.18–1.21 (tutte EOL) e action obsolete
 
-- **status**: open
+- **status**: done
 - **priority**: medium
 - **impact**: patch
 - **labels**: ci, dependencies, audit-p2
 - **milestone**: v1.2.0 — Qualità, CI, documentazione
 - **ref**: [audit §D](audit-2026-08-10.md)
+
+✅ **FATTO in v1.2.0** — matrice `1.18.x` (il **floor dichiarato in go.mod**, che va testato: altrimenti `go 1.18` è una promessa non verificata) + `1.23/1.24/1.25`, `actions/checkout@v4`, `actions/setup-go@v5`, `fail-fast: false`. Rimosso `cache-dependency-path: subdir/go.sum` (path inesistente) e **attivata** la cache dei moduli su `go.sum`. `go mod tidy` non si lancia più in CI come step di setup — mascherava i disallineamenti invece di segnalarli: ora c'è uno step che fallisce se `go.mod`/`go.sum` non sono in pari. Test con `-race`.
 
 Aggiornare la matrice a 1.22–1.25, `actions/checkout@v3`→v4, `actions/setup-go@v4`→v5. Rimuovere
 `cache-dependency-path: subdir/go.sum`, residuo di template che punta a un path inesistente: è inerte solo
@@ -399,12 +407,14 @@ supportata e allinearla a `go.mod`.
 
 ### `tag-autorelease-modernize` — release workflow su action archiviata e permessi eccessivi
 
-- **status**: open
+- **status**: done
 - **priority**: medium
 - **impact**: patch
 - **labels**: ci, security, audit-p2
 - **milestone**: v1.2.0 — Qualità, CI, documentazione
 - **ref**: [audit §D](audit-2026-08-10.md)
+
+✅ **FATTO in v1.2.0** — `actions/create-release@v1` (archiviata dal 2021) → **`softprops/action-gh-release@v2`**; `permissions: write-all` → `contents: write`; rimossa l'installazione di **ffmpeg**, che nessuna parte del repo usa. Il corpo della release è ora la sezione **rifinita a mano** di `CHANGELOG.md`, estratta dal nuovo `scripts/changelog-extract.py` (non lo scheletro generato dal backlog). Un tag con suffisso (`v2.0.0-rc.1`) viene pubblicato come prerelease. Build e test rieseguiti nel workflow, indipendentemente dai gate locali di `make release`.
 
 `tag-autorelease.yml` usa `actions/create-release@v1` (archiviata dal 2021) con `permissions: write-all`
 (basta `contents: write`) e installa **ffmpeg** senza che nulla nel repo lo usi. Sostituire con
@@ -413,12 +423,14 @@ CHANGELOG generata da `make release-notes`.
 
 ### `changelog-bootstrap` — nessun CHANGELOG nonostante 30+ tag e release automatiche
 
-- **status**: open
+- **status**: done
 - **priority**: medium
 - **impact**: patch
 - **labels**: docs, release, audit-p2
 - **milestone**: v1.2.0 — Qualità, CI, documentazione
 - **ref**: [audit §C](audit-2026-08-10.md)
+
+✅ **FATTO in v1.2.0** — ricostruite dai tag le sezioni `[0.1.0]`, `[0.1.29]` (aggregato della linea 0.1.x: 24 tag in 12 giorni) e `[1.0.0]`, dichiarando esplicitamente che sono una ricostruzione a grana grossa da `git log`. **Corretta la data di `[1.0.0]`**: era 2023-11-13 (la data dei file), il tag è del **2023-07-27**. Annotato che `v0.1.01`/`v0.1.02`/`v0.1.03` non sono semver validi e per Go valgono come `v0.1.1/2/3`: restano come sono per non invalidare eventuali `go.sum`, e da v1.1.0 il formato è imposto da `new-release.py`.
 
 Lo scheletro Keep a Changelog è in `CHANGELOG.md`, ma la storia da `v0.1.0` a `v1.0.0` è da ricostruire
 dai tag (`git log --oneline v0.1.29..v1.0.0`) almeno a grana grossa. Da lì in avanti ogni release nasce da
@@ -426,12 +438,14 @@ dai tag (`git log --oneline v0.1.29..v1.0.0`) almeno a grana grossa. Da lì in a
 
 ### `deps-resty-bump` — resty v2.7.0 è del 2022
 
-- **status**: open
+- **status**: done
 - **priority**: medium
 - **impact**: patch
 - **labels**: dependencies, audit-p2
 - **milestone**: v1.2.0 — Qualità, CI, documentazione
 - **ref**: [audit §D](audit-2026-08-10.md)
+
+✅ **FATTO in v1.2.0** — resty `v2.7.0` → **`v2.14.0`**, la versione più recente che resta su `go 1.16/1.18`: dalla v2.15.0 resty richiede `go 1.20`, che avrebbe alzato la direttiva del modulo (breaking per i consumer, quindi non ammissibile in una minor). Il bump alla v2.17.x è agganciato a `x-net-http2-go-directive` (v2.0.0). Verificato che `OnRequestLog`/`OnResponseLog`, su cui poggia la redazione delle credenziali, esistano ancora nella v2.14.0.
 
 Bump all'ultima v2 (API-compatibile nel major, quindi `patch` per noi). Da fare **dopo**
 `httptest-client-coverage`: senza test sui metodi HTTP un cambio di comportamento del client resty passa
@@ -440,12 +454,14 @@ una libreria.
 
 ### `dead-code-and-stubs-cleanup` — blocchi commentati e file stub vuoti
 
-- **status**: open
+- **status**: done
 - **priority**: low
 - **impact**: patch
 - **labels**: cleanup, audit-p2
 - **milestone**: v1.2.0 — Qualità, CI, documentazione
 - **ref**: [audit §C](audit-2026-08-10.md)
+
+✅ **FATTO in v1.2.0** — rimossi i `GetRoutes*` per protocollo commentati in `route.go`, le interface `Response`/`Route` in `route/response.go`, `BaseSource` e le due `RequestUdpRtpCreateRoute` in `srt/`/`udp_rtp/`. Cancellati i tre file che contenevano solo `package`: `haivision/stats/request.go`, `haivision/device/request.go`, `haivision/rtsp/response.go`. `RequestCreateRoute` **non** è stata rimossa: serve a `create-route-request-model` (v2.0.0).
 
 Da rimuovere o completare: i `GetRoutes*` per protocollo commentati, le interface `Response`/`Route` in
 `route/response.go`, `RequestUdpRtpCreateRoute`, `BaseSource`. File con solo `package`:
@@ -454,12 +470,14 @@ Da rimuovere o completare: i `GetRoutes*` per protocollo commentati, le interfac
 
 ### `dependabot-tests-dir` — entry dependabot su una directory che non esiste
 
-- **status**: open
+- **status**: done
 - **priority**: low
 - **impact**: patch
 - **labels**: ci, cleanup, audit-p2
 - **milestone**: v1.2.0 — Qualità, CI, documentazione
 - **ref**: [audit §D](audit-2026-08-10.md)
+
+✅ **FATTO in v1.2.0** — rimossa l'entry morta su `/tests` (la directory è `test/` e non ha un `go.mod` proprio, quindi è già coperta dal modulo della root). Scelto **Dependabot** come unico bot: è nativo GitHub e non richiede app installate; `renovate.json` è ora `"enabled": false` con la motivazione scritta dentro, invece di essere cancellato — così la scelta è reversibile e non si rischia una PR di onboarding di Renovate. Aggiunti raggruppamento minor/patch in una sola PR e un **ignore su `golang.org/x/net`** per minor/major: dalla v0.36 richiede `go >= 1.23` e alzerebbe la direttiva del modulo, decisione che non va lasciata a un bot.
 
 `.github/dependabot.yml` monitora `/tests`: la directory è `test/` e non ha un `go.mod` proprio, quindi
 quell'entry è morta. Inoltre Dependabot e Renovate sono entrambi attivi sullo stesso `gomod` della root:

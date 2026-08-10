@@ -45,46 +45,6 @@ type ResponseRouteModel[TS ResponseSource, TD ResponseDestination] struct {
 	HasPendingDelete     bool   `json:"hasPendingDelete"`
 }
 
-// SRT
-//type ResponseRoutesSRT struct {}
-
-/*
-type Response interface {
-	GetData() []Route
-	GetNumPages() int
-	GetNumResults() int
-	GetNumActiveOutputConnections() int
-	GetPendingRouteCreates() int
-}
-
-type Route interface {
-	GetID() string
-	GetName() string
-	GetSource() RequestSource
-	GetDestinations() []RequestDestination
-	GetElapsedTime() string
-	GetState() string
-	GetPendingUpdates() int
-	GetSummaryStatusCode() string
-	GetSummaryStatusDetails() string
-	GetHasPendingDelete() bool
-}
-
-func (r ResponseRoutes[TS RequestSource, TD RequestDestination]) GetData() []Route {
-	// convert []RouteModel[TS, TD] to []Route and return
-}
-
-func (r ResponseRoutes[TS RequestSource, TD RequestDestination]) GetNumPages() int {
-	return r.NumPages
-}
-
-// implement the rest of the methods for ResponseRoutes
-
-func (r RouteModel[TS RequestSource, TD RequestDestination]) GetID() string {
-	return r.ID
-}
-*/
-
 type ResponseCreateRoute struct {
 	Status string `json:"status"`
 }

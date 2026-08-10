@@ -18,22 +18,19 @@ Haivision SRT Gateway is a highly flexible and scalable broadcast solution for s
 
 ## Installation
 
-To install the Haivision Go SDK, you will need to have Go version 1.13 or later installed on your system. Once Go is installed, you can use the following command to install the SDK:
+Serve **Go 1.18 o superiore** (l'SDK usa i generics). Il package importabile è `.../haivision`: la root
+del modulo non contiene file Go.
 
 ```bash
 go get github.com/Allan-Nava/Haivision-go-sdk
 ```
 
+```go
+import "github.com/Allan-Nava/Haivision-go-sdk/haivision"
+```
 
-The SDK also provide more functionality such as stop stream, getting stream status, play stream, and more, you can see the full API documentation in the API Reference section.
+Esempio d'uso completo, gestione degli errori (`APIError`, `ErrNoDevices`) e **limitazioni note della
+v1.x** sono nel [README del repository](https://github.com/Allan-Nava/Haivision-go-sdk#usage).
 
-
-### Support
-If you have any issues or need assistance using the Haivision Go SDK, please contact the developer at allannava95@gmail.com or visit the project's issue tracker at https://github.com/Allan-Nava/Haivision-go-sdk/issues
-
-### Contribution
-We welcome contributions to the Haivision Go SDK. If you would like to contribute, please fork the repository, make your changes, and submit a pull request. When submitting a pull request, please make sure to follow the project's coding style and include tests for any new functionality.
-
-### License
-The Haivision Go SDK is released under the MIT License and can be used for both personal and commercial projects.
-
+Stato del progetto: [roadmap per milestone](roadmap.md) · [backlog](backlog.md) ·
+[audit tecnico](audit-2026-08-10.md).

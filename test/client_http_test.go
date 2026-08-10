@@ -31,20 +31,37 @@ type gatewayStub struct {
 
 func newGatewayStub(t *testing.T) *gatewayStub {
 	t.Helper()
+	return newStub(t, false)
+}
+
+// newTLSGatewayStub serve su HTTPS con un certificato self-signed: serve a verificare che il
+// flag `insecure` regga la verifica TLS invece di disabilitarla sempre.
+func newTLSGatewayStub(t *testing.T) *gatewayStub {
+	t.Helper()
+	return newStub(t, true)
+}
+
+func newStub(t *testing.T, useTLS bool) *gatewayStub {
+	t.Helper()
 	g := &gatewayStub{handlers: map[string]func(http.ResponseWriter, *http.Request){}}
-	g.srv = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		g.mu.Lock()
 		if r.URL.Path == "/api/session" && r.Method == http.MethodPost {
 			g.sessionH = r.Header.Clone()
 		}
-		h := g.handlers[r.Method+" "+r.URL.Path]
+		handler := g.handlers[r.Method+" "+r.URL.Path]
 		g.mu.Unlock()
-		if h == nil {
+		if handler == nil {
 			http.Error(w, `{"error":"rotta non stubbata: `+r.Method+" "+r.URL.Path+`"}`, http.StatusNotFound)
 			return
 		}
-		h(w, r)
-	}))
+		handler(w, r)
+	})
+	if useTLS {
+		g.srv = httptest.NewTLSServer(mux)
+	} else {
+		g.srv = httptest.NewServer(mux)
+	}
 	t.Cleanup(g.srv.Close)
 	return g
 }

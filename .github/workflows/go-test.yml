@@ -1,39 +1,76 @@
 name: Go test workflow
-on: [push]
+#
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 #
 env:
   APP_ENV: runner
 #
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        go-version: [ '1.18.x', '1.19.x', '1.20.x', '1.21.x' ]
+        go-version: [ '1.18.x', '1.23.x', '1.24.x', '1.25.x' ]
     #
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       #
       - name: Setup Go ${{ matrix.go-version }}
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
-          cache-dependency-path: subdir/go.sum
-          #cache: true
+          cache: true
+          cache-dependency-path: go.sum
       #
-      # You can test your matrix by printing the current Go version
       - name: Display Go version
         run: go version
       #
-      - name: Install dependencies
-        run: go mod tidy 
+      # `go mod tidy` non va lanciato in CI: modificherebbe go.mod/go.sum mascherando un
+      # disallineamento invece di segnalarlo. `download` è l'equivalente in sola lettura.
+      - name: Download dependencies
+        run: go mod download
       #
-      - name: Build
-        run: go build -v ./... 
+      - name: Verifica che go.mod/go.sum siano in pari
+        run: |
+          go mod tidy
+          git diff --exit-code -- go.mod go.sum \
+            || { echo "::error::go.mod/go.sum non in pari: lancia 'go mod tidy' e committa"; exit 1; }
       #
-      - name: Test with the Go CLI
-        run: go test -v ./...
+      - name: Test
+        run: go test -v -race ./...
       #
+  #
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.x'
+          cache: true
+          cache-dependency-path: go.sum
+      #
+      # Soglia minima sul package della libreria: i test stanno in test/ (package esterno),
+      # quindi serve -coverpkg, altrimenti la copertura misurata sarebbe ~0.
+      - name: Coverage con soglia minima
+        run: |
+          go test -count=1 -coverpkg=./haivision/... -coverprofile=cover.out ./... 
+          go tool cover -func=cover.out | tail -1
+          pct=$(go tool cover -func=cover.out | tail -1 | grep -oE '[0-9]+\.[0-9]+')
+          min=60.0
+          awk -v p="$pct" -v m="$min" 'BEGIN { if (p+0 < m+0) {
+            printf "::error::copertura %.1f%% sotto la soglia di %.1f%%\n", p, m; exit 1
+          } else { printf "copertura %.1f%% (soglia %.1f%%)\n", p, m } }'
+      #
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: cover.out
     #
   #
 #

@@ -1,15 +1,33 @@
 ---
+# Gestione aggiornamenti dipendenze: **Dependabot** è la scelta del repo (nativo GitHub, nessuna
+# app da installare). Renovate è disabilitato in renovate.json per non avere due bot che aprono
+# PR sullo stesso `go.mod`.
+#
+# L'entry `/tests` che c'era prima era morta: la directory è `test/` e non ha un go.mod proprio,
+# quindi è già coperta dal modulo della root.
 version: 2
 updates:
   - package-ecosystem: gomod
     directory: /
     schedule:
       interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # un'unica PR per gli aggiornamenti minor/patch: meno rumore, un solo giro di CI
+      go-minor-patch:
+        applies-to: version-updates
+        update-types: [ "minor", "patch" ]
+    ignore:
+      # golang.org/x/net >= v0.36 richiede go >= 1.23: alzarlo forza la direttiva `go` del
+      # modulo e rompe i consumer su toolchain più vecchi. Il bump è pianificato in v2.0.0
+      # (item `x-net-http2-go-directive`), non va fatto da un bot.
+      - dependency-name: golang.org/x/net
+        update-types: [ "version-update:semver-minor", "version-update:semver-major" ]
+  #
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
-  - package-ecosystem: gomod
-    directory: /tests
-    schedule:
-      interval: weekly
+    groups:
+      github-actions:
+        patterns: [ "*" ]

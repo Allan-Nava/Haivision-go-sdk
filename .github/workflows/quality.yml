@@ -1,0 +1,55 @@
+name: Quality gates
+#
+# I gate che prima non esistevano: formato, lint statico e vulnerabilità. Fino alla v1.2.0
+# l'unico controllo era `go build` + `go test`, quindi 5 file non formattati sono rimasti in
+# main per mesi e una dipendenza vulnerabile non veniva segnalata da nessuno.
+# Equivalente locale: `make check`.
+#
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+#
+permissions:
+  contents: read
+#
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      #
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.x'
+          cache: true
+          cache-dependency-path: go.sum
+      #
+      - name: gofmt
+        run: |
+          out="$(gofmt -l .)"
+          if [ -n "$out" ]; then
+            echo "::error::file non formattati (lancia 'make fmt'):"; echo "$out"; exit 1
+          fi
+          echo "gofmt OK"
+      #
+      - name: go vet
+        run: go vet ./...
+      #
+      - name: staticcheck
+        uses: dominikh/staticcheck-action@v1
+        with:
+          version: latest
+          install-go: false
+      #
+      # govulncheck segnala anche le vulnerabilità della stdlib del toolchain, che si chiudono
+      # aggiornando Go e non toccando go.mod: per questo NON blocca la build.
+      - name: govulncheck (informativo)
+        continue-on-error: true
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+    #
+  #
+#

@@ -8,7 +8,7 @@ The Haivision Go SDK is a software development kit for interacting with Haivisio
 
 ## Installation
 
-To install the Haivision Go SDK, you will need to have Go version 1.13 or later installed on your system. Once Go is installed, you can use the following command to install the SDK:
+Serve **Go 1.18 o superiore**: l'SDK usa i generics (`route.RouteModel[TS, TD]`).
 
 ```bash
 go get github.com/Allan-Nava/Haivision-go-sdk
@@ -21,14 +21,95 @@ Haivision SRT Gateway is a highly flexible and scalable broadcast solution for s
 
 ## Usage
 
-To use the Haivision Go SDK in your application, you will first need to import it into your code:
+Il package importabile è **`.../haivision`**: la root del modulo non contiene file Go.
 
 ```go
-import "github.com/Allan-Nava/Haivision-go-sdk"
-````
+package main
 
-The SDK also provide more functionality such as stop stream, getting stream status, play stream, and more, you can see the full API documentation in the API Reference section.
+import (
+	"log"
 
+	"github.com/Allan-Nava/Haivision-go-sdk/haivision"
+)
+
+func main() {
+	// BuildHaivision apre la sessione: fa POST /api/session + GET /api/devices.
+	// insecure: nil o &false ⇒ certificato TLS verificato; &true ⇒ verifica disabilitata.
+	client, err := haivision.BuildHaivision(
+		"https://gateway.example.com",
+		false,          // debug (con true, credenziali e sessionID sono mascherati nei log)
+		"haiadmin", "password",
+		nil,            // *HeaderConfigurator: header custom / Basic auth di un proxy davanti al gateway
+		nil,            // insecure
+	)
+	if err != nil {
+		log.Fatalf("connessione al gateway: %v", err)
+	}
+
+	if err := client.HealthCheck(); err != nil {
+		log.Fatalf("gateway non raggiungibile o sessione scaduta: %v", err)
+	}
+
+	deviceID := client.GetDeviceID() // primo device restituito da /api/devices
+
+	stats, err := client.GetRouteStatistics(deviceID, "<route-id>")
+	if err != nil {
+		log.Fatalf("statistiche: %v", err)
+	}
+	log.Printf("route %s: stato %s, bitrate %v Mbit/s",
+		stats.Route.Name, stats.Route.State, stats.Route.Source.Bitrate)
+}
+```
+
+### Gestione degli errori
+
+Ogni risposta HTTP di errore del gateway diventa un `*haivision.APIError`:
+
+```go
+var apiErr *haivision.APIError
+if errors.As(err, &apiErr) {
+	if apiErr.IsUnauthorized() {
+		// 401/403: sessione scaduta (il gateway la fa scadere e l'SDK non la rinnova)
+		// oppure credenziali/ruolo insufficienti → ricostruisci il client
+	}
+	log.Printf("%s %s: %d — %s", apiErr.Method, apiErr.URL, apiErr.StatusCode, apiErr.Body)
+}
+```
+
+`haivision.ErrNoDevices` segnala che `GET /api/devices` ha risposto con una lista vuota.
+
+## API disponibili
+
+| Area | Metodi |
+|---|---|
+| Sessione | `InitSession`, `GetSessionInfo`, `HealthCheck` |
+| Device | `GetDeviceInfo`, `GetDeviceID`, `GetHType` |
+| Route | `GetRoutes`, `GetRouteConfiguration`, `CreateRouteSrt`/`Rtmp`/`Rtsp`/`UdpRtp`, `StartOrStopRoute` |
+| Statistiche | `GetRouteStatistics`, `GetSourceStatistics`, `GetDestinationStatisticsById`/`ByName`, `GetSrtClientStatistics` |
+
+### ⚠️ Limitazioni note in v1.x
+
+- **`CreateRoute*` non funziona ancora contro il gateway**: invia il modello di risposta invece del body documentato (manca il wrapper `action`/`deviceID`/`elementType`/`fields`).
+- **`StartOrStopRoute` colpisce l'endpoint giusto ma non deserializza la risposta**: l'API risponde con un array top-level, il tipo di ritorno è una struct.
+- **Le statistiche con valori frazionari falliscono**: `bitrate`/`sendRate`/`usedBandwidth` sono documentati in Mbit/s ma tipizzati `int`.
+- Nessun `context.Context` e nessun timeout: le chiamate non sono cancellabili.
+- Mancano update/delete di una route e la gestione delle singole destinazioni.
+
+Sono tutti cambiamenti **breaking**, pianificati in **v2.0.0**: vedi la [roadmap](docs/roadmap.md) e il [backlog](docs/backlog.md).
+
+## Sviluppo
+
+```bash
+make help          # elenco dei target
+make check         # gofmt + vet + build + test + backlog-lint + roadmap-check
+make cover         # copertura per package
+make release-dry   # mostra quale release verrebbe tagliata dal backlog
+```
+
+I todo stanno **solo** in [`docs/backlog.md`](docs/backlog.md) (sorgente unica): da lì si generano la
+[roadmap per milestone di versione](docs/roadmap.md) e le sezioni del [CHANGELOG](CHANGELOG.md).
+Le release si tagliano con `make release`, che deriva la versione dal backlog. Convenzioni per gli
+agent AI: [`AGENTS.md`](AGENTS.md) / [`CLAUDE.md`](CLAUDE.md).
 
 ### Support
 If you have any issues or need assistance using the Haivision Go SDK, please contact the developer at allan.nava@hiway.media or visit the project's issue tracker at https://github.com/Allan-Nava/Haivision-go-sdk/issues

@@ -30,26 +30,6 @@ Response
 	  "pendingRouteCreates": 1
 	}
 */
-/*
-func (o *Haivision) GetRoutesSrt(deviceId string) (*route.ResponseRoutes[srt.RequestSourceModelSRT, srt.RequestDestinationModelSrt], error) {
-	log.Println("GetRoutesSrt ", deviceId)
-	return nil, nil
-}
-
-func (o *Haivision) GetRoutesRtmp(deviceId string) (*route.ResponseRoutes[rtmp.RequestSourceModelRTMP, rtmp.RequestDestinationModelRtmp], error) {
-	log.Println("GetRoutesRtmp ", deviceId)
-	return nil, nil
-}
-
-func (o *Haivision) GetRoutesRtsp(deviceId string) (*route.ResponseRoutes[rtsp.RequestSourceModelRTSP, rtsp.RequestDestinationModelRtsp], error) {
-	log.Println("GetRoutesRtsp ", deviceId)
-	return nil, nil
-}
-
-func (o *Haivision) GetRoutesUdpRtp(deviceId string) (*route.ResponseRoutes[udprtp.RequestSourceModelUdpRtp, udprtp.RequestDestinationModelUdpRtp], error) {
-	log.Println("GetRoutesRtsp ", deviceId)
-	return nil, nil
-}*/
 
 func (o *haivisionSdk) GetRoutes(deviceId string) (*resty.Response, error) {
 	o.debugf("GetRoutes device=%s", deviceId)
@@ -57,7 +37,6 @@ func (o *haivisionSdk) GetRoutes(deviceId string) (*resty.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	//log.Println("GetRoutes ", resp)
 	return resp, nil
 }
 
