@@ -22,18 +22,18 @@ package device
 		}
 */
 type ResponseDeviceInfo struct {
-	ID               string `json:"_id" `
-	Type             string `json:"type" `
-	IP               string `json:"ip" `
-	Name             string `json:"name" `
-	LastConnectedAt  int64  `json:"lastConnectedAt" `
-	StatusCode       string `json:"statusCode" `
-	Status           string `json:"status" `
-	StatusDetails    string `json:"statusDetails" `
+	ID               string  `json:"_id" `
+	Type             string  `json:"type" `
+	IP               string  `json:"ip" `
+	Name             string  `json:"name" `
+	LastConnectedAt  int64   `json:"lastConnectedAt" `
+	StatusCode       string  `json:"statusCode" `
+	Status           string  `json:"status" `
+	StatusDetails    string  `json:"statusDetails" `
 	SerialNumber     *string `json:"serialNumber" `
-	Firmware         string `json:"firmware" `
-	HasAdminError    bool   `json:"hasAdminError" `
-	PendingSync      bool   `json:"pendingSync" `
-	LastConnection   string `json:"lastConnection" `
-	LastConnectionAt string `json:"lastConnectionAt" `
+	Firmware         string  `json:"firmware" `
+	HasAdminError    bool    `json:"hasAdminError" `
+	PendingSync      bool    `json:"pendingSync" `
+	LastConnection   string  `json:"lastConnection" `
+	LastConnectionAt string  `json:"lastConnectionAt" `
 }

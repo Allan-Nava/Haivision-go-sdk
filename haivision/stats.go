@@ -2,7 +2,6 @@ package haivision
 
 import (
 	"encoding/json"
-	"log"
 
 	"github.com/Allan-Nava/Haivision-go-sdk/haivision/stats"
 )
@@ -13,7 +12,7 @@ cookie: sessionID: [Session ID]
 */
 
 func (o *haivisionSdk) GetRouteStatistics(deviceId string, routeId string) (*stats.ResponseRouteStatistics, error) {
-	log.Println("GetStats ", deviceId, routeId)
+	o.debugf("GetRouteStatistics device=%s route=%s", deviceId, routeId)
 	queryParams := map[string]string{
 		"routeID": routeId,
 	}
@@ -35,7 +34,7 @@ cookie: sessionID: [Session ID]
 */
 
 func (o *haivisionSdk) GetSourceStatistics(deviceId string, routeId string, sourceId string) (*stats.ResponseSourceStatistics, error) {
-	log.Println("GetStats ", deviceId, routeId, sourceId)
+	o.debugf("GetSourceStatistics device=%s route=%s source=%s", deviceId, routeId, sourceId)
 	queryParams := map[string]string{
 		"routeID":  routeId,
 		"sourceID": sourceId,
@@ -66,7 +65,7 @@ cookie: sessionID: [Session ID]
 */
 
 func (o *haivisionSdk) GetDestinationStatisticsById(deviceId string, routeId string, destinationID string) (*stats.ResponseDestinationStatistics, error) {
-	log.Println("GetStats ", deviceId, routeId, destinationID)
+	o.debugf("GetDestinationStatisticsById device=%s route=%s destination=%s", deviceId, routeId, destinationID)
 	queryParams := map[string]string{
 		"routeID":       routeId,
 		"destinationID": destinationID,
@@ -83,7 +82,7 @@ func (o *haivisionSdk) GetDestinationStatisticsById(deviceId string, routeId str
 }
 
 func (o *haivisionSdk) GetDestinationStatisticsByName(deviceId string, routeId string, destinationName string) (*stats.ResponseDestinationStatistics, error) {
-	log.Println("GetStats ", deviceId, routeId, destinationName)
+	o.debugf("GetDestinationStatisticsByName device=%s route=%s destination=%s", deviceId, routeId, destinationName)
 	queryParams := map[string]string{
 		"routeID":         routeId,
 		"destinationName": destinationName,
@@ -106,14 +105,15 @@ cookie: sessionID: [Session ID]
 */
 
 func (o *haivisionSdk) GetSrtClientStatistics(deviceId string, routeId string, destinationID string, clientAddress string, clientPort string) (*stats.ResponseSrtClientStatistics, error) {
-	log.Println("GetStats ", deviceId, routeId, destinationID)
+	o.debugf("GetSrtClientStatistics device=%s route=%s destination=%s client=%s:%s", deviceId, routeId, destinationID, clientAddress, clientPort)
 	queryParams := map[string]string{
 		"routeID":       routeId,
 		"destinationID": destinationID,
 		"clientAddress": clientAddress,
 		"clientPort":    clientPort,
 	}
-	resp, err := o.restyGet(GET_ROUTES_STATISTICS(deviceId), queryParams)
+	// sotto-path /statistics/client, non /statistics
+	resp, err := o.restyGet(GET_ROUTES_CLIENT_STATISTICS(deviceId), queryParams)
 	if err != nil {
 		return nil, err
 	}

@@ -3,7 +3,6 @@ package haivision
 import (
 	"encoding/json"
 	"errors"
-	"log"
 
 	"github.com/Allan-Nava/Haivision-go-sdk/haivision/route"
 	"github.com/Allan-Nava/Haivision-go-sdk/haivision/rtmp"
@@ -53,7 +52,7 @@ func (o *Haivision) GetRoutesUdpRtp(deviceId string) (*route.ResponseRoutes[udpr
 }*/
 
 func (o *haivisionSdk) GetRoutes(deviceId string) (*resty.Response, error) {
-	log.Println("GetRoutes ", deviceId)
+	o.debugf("GetRoutes device=%s", deviceId)
 	resp, err := o.restyGet(GET_LIST_OF_ROUTES(deviceId), nil)
 	if err != nil {
 		return nil, err
@@ -63,7 +62,7 @@ func (o *haivisionSdk) GetRoutes(deviceId string) (*resty.Response, error) {
 }
 
 func (o *haivisionSdk) GetRouteConfiguration(deviceId string, routeId string) (*resty.Response, error) {
-	log.Println("GetRouteConfiguration ", deviceId, routeId)
+	o.debugf("GetRouteConfiguration device=%s route=%s", deviceId, routeId)
 	resp, err := o.restyGet(GET_ROUTE_CONFIGURATION(deviceId, routeId), nil)
 	if err != nil {
 		return nil, err
@@ -104,7 +103,7 @@ Response
 */
 
 func (o *haivisionSdk) CreateRouteSrt(deviceId string, rBody *route.RouteModel[srt.RequestSourceModelSRT, srt.RequestDestinationModelSrt]) (*route.ResponseCreateRoute, error) {
-	log.Println("CreateRouteSrt ", deviceId)
+	o.debugf("CreateRouteSrt device=%s", deviceId)
 
 	if errs := validator.Validate(rBody); errs != nil {
 		// values not valid, deal with errors here
@@ -114,7 +113,7 @@ func (o *haivisionSdk) CreateRouteSrt(deviceId string, rBody *route.RouteModel[s
 	if err != nil {
 		return nil, err
 	}
-	o.debugPrint(resp)
+	o.debugResponse("CreateRoute", resp)
 	var obj route.ResponseCreateRoute
 	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
 		return nil, err
@@ -122,7 +121,7 @@ func (o *haivisionSdk) CreateRouteSrt(deviceId string, rBody *route.RouteModel[s
 	return &obj, nil
 }
 func (o *haivisionSdk) CreateRouteRtmp(deviceId string, rBody *route.RouteModel[rtmp.RequestSourceModelRTMP, rtmp.RequestDestinationModelRtmp]) (*route.ResponseCreateRoute, error) {
-	log.Println("CreateRouteRtmp ", deviceId)
+	o.debugf("CreateRouteRtmp device=%s", deviceId)
 	if errs := validator.Validate(rBody); errs != nil {
 		// values not valid, deal with errors here
 		return nil, errs
@@ -131,7 +130,7 @@ func (o *haivisionSdk) CreateRouteRtmp(deviceId string, rBody *route.RouteModel[
 	if err != nil {
 		return nil, err
 	}
-	o.debugPrint(resp)
+	o.debugResponse("CreateRoute", resp)
 	var obj route.ResponseCreateRoute
 	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
 		return nil, err
@@ -139,7 +138,7 @@ func (o *haivisionSdk) CreateRouteRtmp(deviceId string, rBody *route.RouteModel[
 	return &obj, nil
 }
 func (o *haivisionSdk) CreateRouteRtsp(deviceId string, rBody *route.RouteModel[rtsp.RequestSourceModelRTSP, rtsp.RequestDestinationModelRtsp]) (*route.ResponseCreateRoute, error) {
-	log.Println("CreateRouteRtsp ", deviceId)
+	o.debugf("CreateRouteRtsp device=%s", deviceId)
 	if errs := validator.Validate(rBody); errs != nil {
 		// values not valid, deal with errors here
 		return nil, errs
@@ -148,7 +147,7 @@ func (o *haivisionSdk) CreateRouteRtsp(deviceId string, rBody *route.RouteModel[
 	if err != nil {
 		return nil, err
 	}
-	o.debugPrint(resp)
+	o.debugResponse("CreateRoute", resp)
 	var obj route.ResponseCreateRoute
 	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
 		return nil, err
@@ -157,7 +156,7 @@ func (o *haivisionSdk) CreateRouteRtsp(deviceId string, rBody *route.RouteModel[
 }
 
 func (o *haivisionSdk) CreateRouteUdpRtp(deviceId string, rBody *route.RouteModel[udprtp.RequestSourceModelUdpRtp, udprtp.RequestDestinationModelUdpRtp]) (*route.ResponseCreateRoute, error) {
-	log.Println("CreateRouteUdpRtp ", deviceId)
+	o.debugf("CreateRouteUdpRtp device=%s", deviceId)
 	if errs := validator.Validate(rBody); errs != nil {
 		// values not valid, deal with errors here
 		return nil, errs
@@ -175,7 +174,7 @@ func (o *haivisionSdk) CreateRouteUdpRtp(deviceId string, rBody *route.RouteMode
 
 // Start or Stop a route
 func (o *haivisionSdk) StartOrStopRoute(deviceId string, routeId string, command string) (*route.ResponseStartOrRoute, error) {
-	log.Println("StartOrStopRoute ", deviceId, routeId, command)
+	o.debugf("StartOrStopRoute device=%s route=%s command=%s", deviceId, routeId, command)
 	if command != route.START_ROUTE && command != route.STOP_ROUTE {
 		return nil, errors.New("command must be start-route or stop-route")
 	}
@@ -192,12 +191,12 @@ func (o *haivisionSdk) StartOrStopRoute(deviceId string, routeId string, command
 		// values not valid, deal with errors here
 		return nil, errs
 	}
-	//
-	resp, err := o.restyPost(POST_CREATE_ROUTE(deviceId), rBody)
+	// endpoint dei COMANDI, non /updates: sono due endpoint diversi del gateway
+	resp, err := o.restyPost(POST_ROUTE_COMMAND(deviceId), rBody)
 	if err != nil {
 		return nil, err
 	}
-	o.debugPrint(resp)
+	o.debugResponse("StartOrStopRoute", resp)
 	//
 	var obj route.ResponseStartOrRoute
 	if err := json.Unmarshal(resp.Body(), &obj); err != nil {

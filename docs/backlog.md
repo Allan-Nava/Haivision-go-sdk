@@ -79,12 +79,14 @@ Fonte di tutti gli item aperti al 2026-08-10: [audit tecnico](audit-2026-08-10.m
 
 ### `http-status-check` — nessun metodo controlla lo status HTTP: 401/500 sembrano successi
 
-- **status**: open
+- **status**: done
 - **priority**: high
 - **impact**: minor
 - **labels**: correctness, client, audit-p1
 - **milestone**: v1.1.0 — Correttezza client, sicurezza, wire fix
 - **ref**: [audit §A1](audit-2026-08-10.md)
+
+✅ **FATTO in v1.1.0** — controllo centralizzato nei due helper resty (`haivision/haivision.go`): un 4xx/5xx diventa `*APIError` (nuovo `haivision/errors.go`) con metodo, URL, status ed estratto del body **redatto e troncato** a 512 rune. Helper `IsUnauthorized()` (401/403, tipicamente sessione scaduta) e `IsNotFound()`. Coperto da `TestBuildHaivisionWrongCredentialsReturnsError` e `TestBuildHaivisionDeviceErrorReturnsError`.
 
 `restyGet`/`restyPost` in `haivision/haivision.go` ritornano `err == nil` per qualsiasi risposta ricevuta,
 poi ogni metodo fa `json.Unmarshal` sul body. Con credenziali errate `InitSession` ritorna un oggetto a
@@ -96,12 +98,14 @@ ancora, ma il comportamento cambia — va scritto nel changelog.
 
 ### `insecure-flag-inverted` — `insecure: &false` DISABILITA la verifica TLS
 
-- **status**: open
+- **status**: done
 - **priority**: high
 - **impact**: minor
 - **labels**: security, tls, audit-p1
 - **milestone**: v1.1.0 — Correttezza client, sicurezza, wire fix
 - **ref**: [audit §A2](audit-2026-08-10.md)
+
+✅ **FATTO in v1.1.0** — `if insecure != nil && *insecure`: `nil` **e** `&false` danno entrambi TLS verificato, solo `&true` disabilita la verifica. Firma invariata (non-breaking); la pulizia in struct di opzioni resta `builder-options-struct` (v2.0.0).
 
 `builder.go` verifica solo `insecure != nil` e non legge mai il valore puntato: passare un puntatore a
 `false` attiva `InsecureSkipVerify`, l'opposto di quanto chiede il chiamante. L'unico modo di avere TLS
@@ -113,12 +117,14 @@ comportamento: chi passava `&false` credendo di disabilitare lo skip aveva TLS n
 
 ### `device-list-empty-panic` — panic se il gateway risponde con lista device vuota
 
-- **status**: open
+- **status**: done
 - **priority**: high
 - **impact**: patch
 - **labels**: correctness, client, audit-p1
 - **milestone**: v1.1.0 — Correttezza client, sicurezza, wire fix
 - **ref**: [audit §A3](audit-2026-08-10.md)
+
+✅ **FATTO in v1.1.0** — guardia su `nil`/slice vuota + nuovo errore esportato `ErrNoDevices` (verificabile con `errors.Is`). Coperto da `TestBuildHaivisionEmptyDeviceListReturnsError`.
 
 `BuildHaivision` fa `(*deviceResponse)[0].ID` senza controllo di lunghezza: gateway senza device, o body
 d'errore che deserializza in slice vuota, danno `index out of range` invece di un errore. Aggiungere la
@@ -127,12 +133,14 @@ multi-device richiede di passare `deviceId` ai metodi.
 
 ### `debug-logs-credentials` — con `debug: true` username e password finiscono nei log
 
-- **status**: open
+- **status**: done
 - **priority**: high
 - **impact**: patch
 - **labels**: security, logging, audit-p1
 - **milestone**: v1.1.0 — Correttezza client, sicurezza, wire fix
 - **ref**: [audit §A7](audit-2026-08-10.md)
+
+✅ **FATTO in v1.1.0** — hook `OnRequestLog`/`OnResponseLog` registrate **prima** della prima richiesta, con redazione in `haivision/redact.go`: valori di `password`, `sessionID`, `srtPassPhrase`, `passphrase`, `token`, `secret` e header `Authorization`/`Cookie`/`Set-Cookie`. Verificato leggendo `middleware.go` di resty che le hook ricevono una **copia** degli header (`copyHeaders`), quindi la redazione non altera la richiesta reale. `debugResponse` passa da `bodyExcerpt`, che redige e tronca. Test in `haivision/redact_test.go` (in-package: le funzioni sono non esportate).
 
 `resty.SetDebug(true)` logga i body delle richieste: `POST /api/session` finisce nei log con credenziali in
 chiaro, e `debugPrint` logga la risposta con il `sessionID`. Redigere i campi sensibili (hook resty
@@ -140,12 +148,14 @@ chiaro, e `debugPrint` logga la risposta con il `sessionID`. Redigere i campi se
 
 ### `route-json-tag-fields-parameters` — body con `"Fields"`/`"Parameters"`: il gateway non li riconosce
 
-- **status**: open
+- **status**: done
 - **priority**: high
 - **impact**: patch
 - **labels**: api-contract, serialization, audit-p0
 - **milestone**: v1.1.0 — Correttezza client, sicurezza, wire fix
 - **ref**: [audit §B1](audit-2026-08-10.md)
+
+✅ **FATTO in v1.1.0** — aggiunti `json:"fields"` e `json:"parameters"`. Le struct anonime **non** sono state estratte in tipi con nome: i tag fanno parte del tipo di una struct anonima, quindi estrarle romperebbe chi costruisce quei literal → rinviato a v2.0.0. Coperto da `TestStartStopRouteRequestBody` e `TestCreateRouteRequestBody`, che asseriscono sui nomi dei campi JSON e falliscono se ricompare `"Fields"`/`"Parameters"`.
 
 Le struct anonime annidate `Fields` e `Parameters` in `haivision/route/model.go` non hanno tag JSON, quindi
 serializzano col nome Go. Verificato: `{"deviceID":"d1","command":"start-route","Parameters":{"routeID":"r1"}}`
@@ -154,12 +164,14 @@ Nessun tipo esportato cambia forma: `patch`.
 
 ### `startstop-commands-endpoint` — start/stop route postato su `/updates` invece di `/commands`
 
-- **status**: open
+- **status**: done
 - **priority**: high
 - **impact**: patch
 - **labels**: api-contract, routes, audit-p0
 - **milestone**: v1.1.0 — Correttezza client, sicurezza, wire fix
 - **ref**: [audit §B3](audit-2026-08-10.md)
+
+✅ **FATTO in v1.1.0** — aggiunto l'helper `POST_ROUTE_COMMAND` e usato in `StartOrStopRoute`. Coperto da `TestStartOrStopRouteUsesCommandsEndpoint`, che stubba **entrambi** gli endpoint e verifica quale viene colpito. Il refuso nel nome `ROUTE_COMMMAND` resta: rinominare una costante esportata è breaking → `exported-naming-typos` (v2.0.0).
 
 `StartOrStopRoute` usa `POST_CREATE_ROUTE(deviceId)` = `/api/devices/%s/updates`, mentre la doc (e il
 commento sopra il metodo stesso) indicano `/api/devices/{id}/commands`. La costante esiste già in
@@ -168,38 +180,55 @@ Aggiungere l'helper e usarlo. La rinomina della costante è breaking → sta in 
 
 ### `srt-client-stats-path` — statistiche client SRT sul path senza `/client`
 
-- **status**: open
+- **status**: done
 - **priority**: high
 - **impact**: patch
 - **labels**: api-contract, stats, audit-p0
 - **milestone**: v1.1.0 — Correttezza client, sicurezza, wire fix
 - **ref**: [audit §B6](audit-2026-08-10.md)
 
+✅ **FATTO in v1.1.0** — nuova costante `ROUTES_CLIENT_STATISTICS` + helper `GET_ROUTES_CLIENT_STATISTICS`. Coperto da `TestGetSrtClientStatisticsUsesClientSubPath`, che verifica path e i quattro query param.
+
 `GetSrtClientStatistics` usa `GET_ROUTES_STATISTICS` (`/api/gateway/%s/statistics`) mentre la doc indica
 `/api/gateway/{id}/statistics/client`. Serve la costante per il sotto-path.
 
-### `deps-x-net-vuln` — `golang.org/x/net v0.7.0`: vulnerabilità raggiungibile dal codice
+### `deps-x-net-vuln` — `golang.org/x/net` v0.7.0 obsoleto → v0.35.0 (GO-2026-4918 non raggiungibile)
 
-- **status**: open
+- **status**: done
 - **priority**: high
 - **impact**: patch
 - **labels**: security, dependencies, audit-p2
 - **milestone**: v1.1.0 — Correttezza client, sicurezza, wire fix
 - **ref**: [audit §D](audit-2026-08-10.md)
 
-`govulncheck ./...` segnala **GO-2026-4918 raggiungibile** (via `resty` → `net/http`), fix in `v0.53.0`.
-Bump della dipendenza. Dependabot e Renovate sono entrambi configurati ma non hanno prodotto il bump:
-verificare che siano attivi, non assumerlo. Le 19 vulnerabilità stdlib segnalate dipendono dal toolchain
-locale (go1.25.0 → ≥1.25.12), non dal repo.
+✅ **CHIUSO in v1.1.0 — ma la premessa era in parte SBAGLIATA: GO-2026-4918 non è raggiungibile da questo codice.**
+
+La verifica: l'unico pacchetto di `golang.org/x/net` che entra nel build è **`publicsuffix`** (tirato dal
+cookiejar di resty), mentre la vulnerabilità sta in `net/http/internal/http2`. `govulncheck` non produce
+**nessuna trace** attraverso `x/net`: l'unica istanza raggiungibile di GO-2026-4918 è quella della
+**stdlib** `net/http`, che si chiude aggiornando il toolchain (go ≥ 1.25.10), non `go.mod`.
+
+E il bump alla versione col fix non era comunque fattibile in una minor: **`x/net` v0.53.0 richiede
+`go 1.25.0`**, quindi avrebbe alzato la direttiva `go` del modulo da 1.18 a 1.25, impedendo la compilazione
+a tutti i consumer su toolchain più vecchi — un breaking change travestito da patch di sicurezza.
+
+**Fatto**: bump a **`x/net` v0.35.0**, la più recente che resta su `go 1.18` (la v0.36.0 passa a
+`go 1.23.0`). Chiude 4 vulnerabilità non raggiungibili nei moduli richiesti (26 → 22) a costo zero di
+compatibilità. Resta segnalata la sola GO-2026-4918, non raggiungibile.
+
+Il bump vero è tracciato in `x-net-http2-go-directive` (v2.0.0), dove alzare la direttiva `go` è
+accettabile perché la release è già breaking.
 
 ### `wire-contract-fixture-tests` — test tabellari di ser/deser sui payload della doc Haivision
 
-- **status**: open
+- **status**: done
 - **priority**: high
 - **impact**: patch
 - **labels**: testing, api-contract, audit-p2
 - **milestone**: v1.1.0 — Correttezza client, sicurezza, wire fix
 - **ref**: [audit §C](audit-2026-08-10.md)
+
+✅ **FATTO in v1.1.0** — `test/wire_route_test.go`, `test/wire_session_test.go`, `test/wire_stats_test.go`: i payload sono quelli **letterali** della doc e le asserzioni sono sui nomi dei campi JSON (via `marshalToMap`), non sui nomi Go — è l'unico modo di vedere un `"Fields"` maiuscolo. I due bug che restano aperti sono bloccati da test di **caratterizzazione** `TestKnownBug_StartStopResponseIsArray` e `TestKnownBug_StatsFractionalBitrate`: asseriscono che l'unmarshal fallisca oggi e **falliranno** quando gli item v2.0.0 saranno chiusi, forzandone l'aggiornamento.
 
 Tutti i bug di contratto trovati nell'audit (tag JSON, array vs oggetto, `int` vs frazionari) sono
 intercettabili con `json.Marshal`/`json.Unmarshal` sui payload **letterali** della doc, offline e senza
@@ -208,12 +237,14 @@ gateway. Un caso per ogni request e ogni response documentata, con confronto cam
 
 ### `makefile-build-and-gofmt` — `make build` è rotto e 5 file non passano gofmt
 
-- **status**: open
+- **status**: done
 - **priority**: medium
 - **impact**: patch
 - **labels**: tooling, dx, audit-p2
 - **milestone**: v1.1.0 — Correttezza client, sicurezza, wire fix
 - **ref**: [audit §C](audit-2026-08-10.md)
+
+✅ **FATTO in v1.1.0** — `Makefile` riscritto: `build` usa `go build -v ./...`, aggiunti `help`, `fmt`, `fmt-check`, `vet`, `cover`, `check` e i target del backlog. `gofmt -w .` applicato: `gofmt -l .` ora è vuoto.
 
 `make build` esegue `go build .` sulla root, dove non esistono file Go: `no Go files in ...`. Il target
 corretto è `go build ./...` (quello che usa la CI, motivo per cui nessuno se n'è accorto). Non formattati:
@@ -222,12 +253,14 @@ corretto è `go build ./...` (quello che usa la CI, motivo per cui nessuno se n'
 
 ### `header-configurator-order` — header custom applicati dopo il login: rotto dietro proxy autenticato
 
-- **status**: open
+- **status**: done
 - **priority**: medium
 - **impact**: patch
 - **labels**: correctness, client, audit-p1
 - **milestone**: v1.1.0 — Correttezza client, sicurezza, wire fix
 - **ref**: [audit §A4](audit-2026-08-10.md)
+
+✅ **FATTO in v1.1.0** — gli header custom sono applicati subito dopo `SetBaseURL`, prima di `InitSession`. Coperto da `TestBuildHaivisionSendsCustomHeadersOnLogin`, che verifica sugli header **realmente ricevuti** dal server sulla `POST /api/session`.
 
 Gli header di `HeaderConfigurator` vengono impostati **dopo** `InitSession` e `GetDeviceInfo`, quindi
 `CreateBasicAuthHeader(...)` e gli header richiesti da un reverse proxy davanti al gateway non partono
@@ -236,12 +269,14 @@ l'applicazione degli header subito dopo `SetBaseURL`.
 
 ### `healthcheck-always-nil` — `HealthCheck()` non può fallire
 
-- **status**: open
+- **status**: done
 - **priority**: medium
 - **impact**: patch
 - **labels**: correctness, client, audit-p1
 - **milestone**: v1.1.0 — Correttezza client, sicurezza, wire fix
 - **ref**: [audit §A5](audit-2026-08-10.md)
+
+✅ **FATTO in v1.1.0** — interroga `GET /api/session` (valida raggiungibilità **e** sessione) e propaga l'errore; risolto anche il path concatenato, dato che `o.Url` era già la BaseURL. Coperto da `TestHealthCheck`, che esercita sessione valida e sessione scaduta (401 → `APIError.IsUnauthorized()`).
 
 Il ramo d'errore fa `return nil`: la funzione ritorna `nil` in ogni caso, inutilizzabile come probe. Inoltre
 fa `GET` su `o.Url` che, essendo già la BaseURL di resty, produce un path concatenato non intenzionale.
@@ -250,12 +285,14 @@ anche che la sessione sia ancora valida).
 
 ### `unconditional-log-println` — la libreria scrive sul logger globale del consumer a ogni chiamata
 
-- **status**: open
+- **status**: done
 - **priority**: low
 - **impact**: patch
 - **labels**: logging, dx, audit-p1
 - **milestone**: v1.1.0 — Correttezza client, sicurezza, wire fix
 - **ref**: [audit §A7](audit-2026-08-10.md)
+
+✅ **FATTO in v1.1.0** — tutti i `log.Println` di `route.go`/`stats.go` sostituiti con `o.debugf` (attivo solo con `debug=true`, prefisso `[haivision]`); `debugPrint` sostituito da `debugResponse`, che logga status, durata ed estratto redatto del body.
 
 `route.go` e `stats.go` fanno `log.Println` **incondizionato**, ignorando il flag `debug`: una libreria non
 deve inquinare lo stdout del chiamante. Sostituire con `o.debugPrint`.
@@ -269,10 +306,17 @@ deve inquinare lo stdout del chiamante. Sostituire con `o.debugPrint`.
 - **milestone**: v1.2.0 — Qualità, CI, documentazione
 - **ref**: [audit §C](audit-2026-08-10.md)
 
-I 2 test esistenti sono triviali e `TestDeviceInfo` fa `log.Println(err)` invece di `t.Fatalf`: un errore di
-unmarshal lascia il test verde. Coprire i metodi HTTP con `httptest.Server` + `BuildHaivision` puntato su
-quello — mai un gateway reale — inclusi i percorsi d'errore (401, body non-JSON, lista device vuota).
-Complementare a `wire-contract-fixture-tests`, che copre solo le struct.
+Coprire i metodi HTTP con `httptest.Server` + `BuildHaivision` puntato su quello — mai un gateway reale.
+
+⚠️ **Parzialmente anticipato in v1.1.0**: `test/client_http_test.go` esiste già (stub `gatewayStub`
+configurabile per rotta, che registra gli header ricevuti) e copre bootstrap, 401, 500, lista device vuota,
+ordine degli header, `HealthCheck` e i due endpoint corretti. I 2 test triviali originali sono stati
+sostituiti (`TestDeviceInfo`, che faceva `log.Println(err)` invece di `t.Fatalf`, non c'è più). Copertura di
+`./haivision/...` dai test: **37,9%**.
+
+**Resta da coprire**: le quattro `CreateRoute*` (bloccate da `create-route-request-model`, v2.0.0), le
+statistiche destination/source, `GetRoutes`/`GetRouteConfiguration`, i body non-JSON e i timeout di rete.
+Obiettivo: ≥70% su `./haivision/...` con un gate di coverage in CI.
 
 ### `readme-import-path-go-version` — il README documenta un import che non compila
 
@@ -503,6 +547,24 @@ L'SDK copre create/list/start/stop e le statistiche; mancano update di una route
 singola destinazione e il logout di sessione. Sono aggiunte funzionali, ma passando per
 `IHaivisionClient` rompono chi implementa l'interfaccia → `major`. Da fare nello stesso ciclo di
 `context-and-timeout` e `builder-options-struct` per non spendere due major.
+
+### `x-net-http2-go-directive` — bump `x/net` alla versione col fix HTTP/2: alza la direttiva `go` a 1.25
+
+- **status**: open
+- **priority**: low
+- **impact**: major
+- **labels**: security, dependencies, breaking
+- **milestone**: v2.0.0 — Contratto API allineato e superficie pulita
+- **ref**: [audit §D](audit-2026-08-10.md)
+
+Scorporato da `deps-x-net-vuln` (v1.1.0), dove il bump non era fattibile: **`golang.org/x/net` v0.53.0 —
+la prima con il fix di GO-2026-4918 — richiede `go 1.25.0`**, quindi alzerebbe la direttiva `go` del modulo
+da 1.18 a 1.25 e impedirebbe la compilazione a ogni consumer su un toolchain più vecchio. In v2.0.0 la
+release è già breaking, quindi il costo è accettabile.
+
+Priorità `low` perché la vulnerabilità **non è raggiungibile** da questo codice: l'unico pacchetto `x/net`
+nel build è `publicsuffix`, mentre la CVE sta in `net/http/internal/http2`. Da fare insieme alla scelta
+della versione minima di Go supportata (`ci-go-matrix-and-actions`): è la stessa decisione.
 
 ### `exported-naming-typos` — refusi in identificatori esportati
 

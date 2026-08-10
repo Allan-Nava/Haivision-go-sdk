@@ -319,7 +319,7 @@ type ResponseRouteStatistics struct {
 	}
 */
 type ResponseSourceStatistics struct {
-	CollectedAt int64                `json:"collectedAt"`
+	CollectedAt int64                 `json:"collectedAt"`
 	Source      SourceStatisticsModel `json:"source"`
 }
 
@@ -332,7 +332,7 @@ type ResponseSourceStatistics struct {
 	}
 */
 type ResponseDestinationStatistics struct {
-	CollectedAt int64      `json:"collectedAt"`
+	CollectedAt int64       `json:"collectedAt"`
 	Destination interface{} `json:"destination"`
 }
 
@@ -345,6 +345,6 @@ type ResponseDestinationStatistics struct {
 	}
 */
 type ResponseSrtClientStatistics struct {
-	CollectedAt int64        `json:"collectedAt"`
+	CollectedAt int64         `json:"collectedAt"`
 	ClientStat  []interface{} `json:"clientStat"`
 }

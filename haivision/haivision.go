@@ -1,6 +1,8 @@
 package haivision
 
 import (
+	"log"
+	"net/http"
 
 	"github.com/go-resty/resty/v2"
 
@@ -57,11 +59,17 @@ type IHaivisionClient interface {
 	//
 }
 
+// HealthCheck verifica che il gateway sia raggiungibile E che la sessione sia ancora valida.
+//
+// Interroga GET /api/session: un 401 significa sessione scaduta (il gateway la fa scadere e
+// l'SDK non la rinnova), quindi il client va ricostruito. Fino alla v1.0.0 questo metodo
+// ritornava `nil` in ogni caso — anche nel ramo d'errore — ed era inutilizzabile come probe.
 func (o *haivisionSdk) HealthCheck() error {
-	_, err := o.restyGet(o.Url, nil)
+	resp, err := o.restyGet(SESSION, nil)
 	if err != nil {
-		return nil
+		return err
 	}
+	o.debugResponse("HealthCheck", resp)
 	return nil
 }
 
@@ -79,7 +87,30 @@ func (o *haivisionSdk) GetHType() string {
 	return o.HType
 }
 
+// Logging di debug
+
+// debugf logga solo se il client è stato costruito con debug=true. Tutti i log della libreria
+// passano da qui: una libreria non deve scrivere sul logger globale del chiamante a ogni
+// chiamata (fino alla v1.0.0 route.go e stats.go facevano `log.Println` incondizionato).
+func (o *haivisionSdk) debugf(format string, v ...interface{}) {
+	if o.debug {
+		log.Printf("[haivision] "+format, v...)
+	}
+}
+
+// debugResponse logga status, durata ed estratto del body. Il body passa da bodyExcerpt,
+// quindi è troncato e con i campi sensibili mascherati (password, sessionID, passphrase SRT).
+func (o *haivisionSdk) debugResponse(label string, resp *resty.Response) {
+	if !o.debug || resp == nil {
+		return
+	}
+	o.debugf("%s: %s (%s) %s", label, resp.Status(), resp.Time(), bodyExcerpt(resp.Body()))
+}
+
 // Resty Methods
+//
+// Sono l'UNICO punto in cui si controlla lo status HTTP: ogni metodo dell'SDK passa da qui, e
+// quindi non deserializza mai un body d'errore. Un 4xx/5xx diventa un *APIError.
 
 func (o *haivisionSdk) restyPost(url string, body interface{}) (*resty.Response, error) {
 	resp, err := o.restClient.R().
@@ -90,17 +121,24 @@ func (o *haivisionSdk) restyPost(url string, body interface{}) (*resty.Response,
 	if err != nil {
 		return nil, err
 	}
+	if resp.IsError() {
+		return nil, newAPIError(http.MethodPost, url, resp.StatusCode(), resp.Status(), resp.Body())
+	}
 	return resp, nil
 }
 
 // get request
 func (o *haivisionSdk) restyGet(url string, queryParams map[string]string) (*resty.Response, error) {
 	resp, err := o.restClient.R().
+		SetHeader("Accept", "application/json").
 		SetQueryParams(queryParams).
 		Get(url)
 	//
 	if err != nil {
 		return nil, err
+	}
+	if resp.IsError() {
+		return nil, newAPIError(http.MethodGet, url, resp.StatusCode(), resp.Status(), resp.Body())
 	}
 	return resp, nil
 }

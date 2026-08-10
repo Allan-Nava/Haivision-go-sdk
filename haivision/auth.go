@@ -44,7 +44,7 @@ func (o *haivisionSdk) InitSession(username string, password string) (*session.B
 	if err != nil {
 		return nil, err
 	}
-	o.debugPrint(resp)
+	o.debugResponse("InitSession", resp)
 	var obj session.BaseResponseInitSession
 	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
 		return nil, err
@@ -83,8 +83,7 @@ func (o *haivisionSdk) GetDeviceInfo() (*[]device.ResponseDeviceInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	//log.Println("GetDeviceInfo resp ",resp.Body())
-	//var obj device.BaseResponseDeviceInfo
+	o.debugResponse("GetDeviceInfo", resp)
 	var obj []device.ResponseDeviceInfo
 	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
 		return nil, err
@@ -99,6 +98,7 @@ func (o *haivisionSdk) GetSessionInfo() (*session.ResponseSessionInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	o.debugResponse("GetSessionInfo", resp)
 	var obj session.ResponseSessionInfo
 	if err := json.Unmarshal(resp.Body(), &obj); err != nil {
 		return nil, err

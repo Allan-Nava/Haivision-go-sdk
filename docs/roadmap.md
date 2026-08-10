@@ -11,53 +11,46 @@ permalink: /roadmap
 <!-- GENERATO da scripts/generate-roadmap.py — NON editare a mano. -->
 > ⚙️ Pagina **generata** da [`scripts/generate-roadmap.py`](https://github.com/Allan-Nava/Haivision-go-sdk/blob/main/scripts/generate-roadmap.py) leggendo [`docs/backlog.md`](backlog.md) (unica sorgente). Rigenerala con `make roadmap`; `make roadmap-check` è il gate in CI.
 
-_Baseline rilasciata: **v1.0.0** · 3 milestone · 31 item pianificati (31 open · 0 done)._
+_Baseline rilasciata: **v1.0.0** · 3 milestone · 32 item pianificati (19 open · 13 done)._
 
 ## Prossima release
 
-**v1.1.0 — Correttezza client, sicurezza, wire fix** — 13 item da chiudere (0 già fatti). `minor` bump rispetto a **v1.0.0** (minimo imposto dagli item: `minor`).
+**v1.2.0 — Qualità, CI, documentazione** — 9 item da chiudere (0 già fatti). `minor` bump rispetto a **v1.1.0** (minimo imposto dagli item: `patch`).
 
 ```
   v1.0.0 (rilasciata)
-     │   v1.1.0    [░░░░░░░░░░░░░░░░] 0/13  minor  ◀── PROSSIMA
-     │   v1.2.0    [░░░░░░░░░░░░░░░░] 0/9   patch
-     │   v2.0.0    [░░░░░░░░░░░░░░░░] 0/9   major
+     │   v1.1.0    [████████████████] 13/13  minor
+     │   v1.2.0    [░░░░░░░░░░░░░░░░] 0/9   patch  ◀── PROSSIMA
+     │   v2.0.0    [░░░░░░░░░░░░░░░░] 0/10  major
      ▼
 ```
 
-Blocker `high` di v1.1.0:
+Blocker `high` di v1.2.0:
 
 | id | Titolo | Impatto | Priorità |
 |----|--------|---------|----------|
-| `http-status-check` | nessun metodo controlla lo status HTTP: 401/500 sembrano successi | ✨ minor | high |
-| `insecure-flag-inverted` | `insecure: &false` DISABILITA la verifica TLS | ✨ minor | high |
-| `debug-logs-credentials` | con `debug: true` username e password finiscono nei log | 🔧 patch | high |
-| `deps-x-net-vuln` | `golang.org/x/net v0.7.0`: vulnerabilità raggiungibile dal codice | 🔧 patch | high |
-| `device-list-empty-panic` | panic se il gateway risponde con lista device vuota | 🔧 patch | high |
-| `route-json-tag-fields-parameters` | body con `"Fields"`/`"Parameters"`: il gateway non li riconosce | 🔧 patch | high |
-| `srt-client-stats-path` | statistiche client SRT sul path senza `/client` | 🔧 patch | high |
-| `startstop-commands-endpoint` | start/stop route postato su `/updates` invece di `/commands` | 🔧 patch | high |
-| `wire-contract-fixture-tests` | test tabellari di ser/deser sui payload della doc Haivision | 🔧 patch | high |
+| `httptest-client-coverage` | copertura del package `haivision`: 0% | 🔧 patch | high |
+| `readme-import-path-go-version` | il README documenta un import che non compila | 🔧 patch | high |
 
 ## v1.1.0 — Correttezza client, sicurezza, wire fix
 
-_minor bump da v1.0.0 · impatto richiesto dagli item: **minor** · 🟢 13 open · 0 done_
+_minor bump da v1.0.0 · impatto richiesto dagli item: **minor** · ✅ rilasciabile · 13 done_
 
 | id | Titolo | Impatto | Priorità | Status |
 |----|--------|---------|----------|--------|
-| `http-status-check` | nessun metodo controlla lo status HTTP: 401/500 sembrano successi | ✨ minor | high | 🟢 open |
-| `insecure-flag-inverted` | `insecure: &false` DISABILITA la verifica TLS | ✨ minor | high | 🟢 open |
-| `debug-logs-credentials` | con `debug: true` username e password finiscono nei log | 🔧 patch | high | 🟢 open |
-| `deps-x-net-vuln` | `golang.org/x/net v0.7.0`: vulnerabilità raggiungibile dal codice | 🔧 patch | high | 🟢 open |
-| `device-list-empty-panic` | panic se il gateway risponde con lista device vuota | 🔧 patch | high | 🟢 open |
-| `route-json-tag-fields-parameters` | body con `"Fields"`/`"Parameters"`: il gateway non li riconosce | 🔧 patch | high | 🟢 open |
-| `srt-client-stats-path` | statistiche client SRT sul path senza `/client` | 🔧 patch | high | 🟢 open |
-| `startstop-commands-endpoint` | start/stop route postato su `/updates` invece di `/commands` | 🔧 patch | high | 🟢 open |
-| `wire-contract-fixture-tests` | test tabellari di ser/deser sui payload della doc Haivision | 🔧 patch | high | 🟢 open |
-| `header-configurator-order` | header custom applicati dopo il login: rotto dietro proxy autenticato | 🔧 patch | medium | 🟢 open |
-| `healthcheck-always-nil` | `HealthCheck()` non può fallire | 🔧 patch | medium | 🟢 open |
-| `makefile-build-and-gofmt` | `make build` è rotto e 5 file non passano gofmt | 🔧 patch | medium | 🟢 open |
-| `unconditional-log-println` | la libreria scrive sul logger globale del consumer a ogni chiamata | 🔧 patch | low | 🟢 open |
+| `http-status-check` | nessun metodo controlla lo status HTTP: 401/500 sembrano successi | ✨ minor | high | ✅ done |
+| `insecure-flag-inverted` | `insecure: &false` DISABILITA la verifica TLS | ✨ minor | high | ✅ done |
+| `debug-logs-credentials` | con `debug: true` username e password finiscono nei log | 🔧 patch | high | ✅ done |
+| `deps-x-net-vuln` | `golang.org/x/net` v0.7.0 obsoleto → v0.35.0 (GO-2026-4918 non raggiungibile) | 🔧 patch | high | ✅ done |
+| `device-list-empty-panic` | panic se il gateway risponde con lista device vuota | 🔧 patch | high | ✅ done |
+| `route-json-tag-fields-parameters` | body con `"Fields"`/`"Parameters"`: il gateway non li riconosce | 🔧 patch | high | ✅ done |
+| `srt-client-stats-path` | statistiche client SRT sul path senza `/client` | 🔧 patch | high | ✅ done |
+| `startstop-commands-endpoint` | start/stop route postato su `/updates` invece di `/commands` | 🔧 patch | high | ✅ done |
+| `wire-contract-fixture-tests` | test tabellari di ser/deser sui payload della doc Haivision | 🔧 patch | high | ✅ done |
+| `header-configurator-order` | header custom applicati dopo il login: rotto dietro proxy autenticato | 🔧 patch | medium | ✅ done |
+| `healthcheck-always-nil` | `HealthCheck()` non può fallire | 🔧 patch | medium | ✅ done |
+| `makefile-build-and-gofmt` | `make build` è rotto e 5 file non passano gofmt | 🔧 patch | medium | ✅ done |
+| `unconditional-log-println` | la libreria scrive sul logger globale del consumer a ogni chiamata | 🔧 patch | low | ✅ done |
 
 ## v1.2.0 — Qualità, CI, documentazione
 
@@ -77,7 +70,7 @@ _minor bump da v1.1.0 · impatto richiesto dagli item: **patch** · 🟢 9 open 
 
 ## v2.0.0 — Contratto API allineato e superficie pulita
 
-_major bump da v1.2.0 · impatto richiesto dagli item: **major** · 🟢 9 open · 0 done_
+_major bump da v1.2.0 · impatto richiesto dagli item: **major** · 🟢 10 open · 0 done_
 
 | id | Titolo | Impatto | Priorità | Status |
 |----|--------|---------|----------|--------|
@@ -90,6 +83,7 @@ _major bump da v1.2.0 · impatto richiesto dagli item: **major** · 🟢 9 open 
 | `typed-get-routes` | `GetRoutes` restituisce `*resty.Response`: il trasporto è nell'API pubblica | 💥 major | medium | 🟢 open |
 | `validator-v10-optional-fields` | la validazione rifiuta route legittime e si rompe sui bool | 💥 major | medium | 🟢 open |
 | `exported-naming-typos` | refusi in identificatori esportati | 💥 major | low | 🟢 open |
+| `x-net-http2-go-directive` | bump `x/net` alla versione col fix HTTP/2: alza la direttiva `go` a 1.25 | 💥 major | low | 🟢 open |
 
 ## Non pianificati (senza milestone)
 

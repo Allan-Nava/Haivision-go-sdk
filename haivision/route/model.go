@@ -30,6 +30,9 @@ import (
 		}
 	}
 */
+// Nota sui tag: `Fields` è una struct anonima e senza il tag `json:"fields"` serializzerebbe
+// col nome Go — `"Fields"` maiuscolo — che il gateway non riconosce. Vale lo stesso per
+// `Parameters` in RequestStartOrStopRoutes. Verificato con test di serializzazione in test/.
 type RequestCreateRoute[TS RequestSource, TD RequestDestination] struct {
 	Action      string `json:"action" required:"true" validate:"nonnil,min=1"`
 	DeviceID    string `json:"deviceID" required:"true" validate:"nonnil,min=1"`
@@ -39,7 +42,7 @@ type RequestCreateRoute[TS RequestSource, TD RequestDestination] struct {
 		StartRoute   bool   `json:"startRoute" required:"true" validate:"nonnil,min=1"`
 		Source       TS     `json:"source" required:"true"`
 		Destinations []TD   `json:"destinations" required:"true"`
-	}
+	} `json:"fields"`
 }
 
 // request source
@@ -97,5 +100,5 @@ type RequestStartOrStopRoutes struct {
 	Command    string `json:"command" required:"true" validate:"nonnil,min=1"`
 	Parameters struct {
 		RouteID string `json:"routeID" required:"true" validate:"nonnil,min=1"`
-	}
+	} `json:"parameters"`
 }

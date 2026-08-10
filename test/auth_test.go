@@ -1,39 +1,53 @@
 package test
 
 import (
-	"encoding/json"
-	"log"
 	"testing"
 
-	"github.com/Allan-Nava/Haivision-go-sdk/haivision/device"
+	"github.com/Allan-Nava/Haivision-go-sdk/haivision"
 )
 
-func TestAuth(t *testing.T) {
-	t.Log("TestAuth")
+// La copertura di sessione/device è in wire_session_test.go (deserializzazione dei payload
+// documentati) e in client_http_test.go (percorsi HTTP contro httptest, inclusi 401 e lista
+// device vuota). Qui resta solo la verifica che HeaderConfigurator produca l'header Basic
+// atteso: è l'unico pezzo di auth che non passa dalla rete.
+
+func TestCreateBasicAuthHeader(t *testing.T) {
+	h := haivision.InitHeaderConfigurator()
+	if h.HasHeaders() {
+		t.Error("un configurator appena creato non deve avere header")
+	}
+	h.CreateBasicAuthHeader("haiadmin", "manager")
+	// base64("haiadmin:manager")
+	const want = "Basic aGFpYWRtaW46bWFuYWdlcg=="
+	got := h.GetHeader("Authorization")
+	if got == nil {
+		t.Fatal("header Authorization assente")
+	}
+	if *got != want {
+		t.Errorf("Authorization = %q, atteso %q", *got, want)
+	}
+	if !h.HasHeader("Authorization") {
+		t.Error("HasHeader(\"Authorization\") = false")
+	}
 }
 
-func TestDeviceInfo(t *testing.T) {
-	var data = `[{
-	   "_id": "wlk9FE3_sOcu_9",
-	   "type": "gateway",
-	   "ip": "127.0.0.1",
-	   "name": "Haivision Gateway",
-	   "lastConnectedAt": 1675178018888,
-	   "statusCode": "ok",
-	   "status": "Online",
-	   "statusDetails": "Connection has been established in the last 1 minutes.",
-	   "serialNumber": null,
-	   "firmware": "5.5.201209.1506",
-	   "hasAdminError": false,
-	   "pendingSync": false,
-	   "lastConnection": "<1m"
-	}]`
-	byte_data := []byte(data)
-	log.Println("TestDeviceInfo ", data, byte_data)
-	//
-	var obj []device.ResponseDeviceInfo
-	if err := json.Unmarshal(byte_data, &obj); err != nil {
-		//panic(err)
-		log.Println(err)
+func TestCreateBasicAuthHeaderEncoded(t *testing.T) {
+	h := haivision.InitHeaderConfigurator()
+	h.CreateBasicAuthHeaderEncoded("aGFpYWRtaW46bWFuYWdlcg==")
+	got := h.GetHeader("Authorization")
+	if got == nil || *got != "Basic aGFpYWRtaW46bWFuYWdlcg==" {
+		t.Errorf("Authorization = %v", got)
+	}
+}
+
+func TestHeaderConfiguratorDelete(t *testing.T) {
+	h := haivision.InitHeaderConfigurator()
+	h.SetHeader("X-Tenant", "hiway")
+	h.DeleteHeader("X-Tenant")
+	if h.HasHeader("X-Tenant") {
+		t.Error("X-Tenant presente dopo DeleteHeader")
+	}
+	if got := h.GetHeader("X-Tenant"); got != nil {
+		t.Errorf("GetHeader su chiave assente = %v, atteso nil", *got)
 	}
 }
